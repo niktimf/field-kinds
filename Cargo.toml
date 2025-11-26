@@ -1,0 +1,20 @@
+[package]
+name = "field-kinds"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Derive macro for compile-time struct field type introspection"
+repository = "https://github.com/niktimf/field-kinds"
+keywords = ["derive", "macro", "reflection", "introspection", "struct"]
+categories = ["development-tools::procedural-macro-helpers", "rust-patterns"]
+
+[dependencies]
+field-kinds-derive = { path = "field-kinds-derive", version = "0.1.0" }
+
+[dev-dependencies]
+rstest = "0.26"
+proptest = "1.9"
+
+[workspace]
+members = ["field-kinds-derive"]
+

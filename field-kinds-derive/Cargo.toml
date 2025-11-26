@@ -1,0 +1,17 @@
+[package]
+name = "field-kinds-derive"
+version = "0.1.0"
+edition = "2024"
+description = "Proc-macro implementation for field-kinds"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { version = "2", features = ["full", "parsing"] }
+quote = "1"
+proc-macro2 = "1"
+
+[dev-dependencies]
+rstest = "0.26"
+proptest = "1.9"
