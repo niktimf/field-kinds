@@ -3,14 +3,11 @@ mod field_info;
 mod hlist_ops;
 mod visitor;
 
-pub use categories::{Categorized, TypeCategory};
-pub use field_info::FieldInfo;
+pub use categories::{Categorized, TypeCategory, Numeric, Text, Bool, Optional, Collection, Unknown};
+pub use field_info::{FieldInfo, CollectNames, CollectSerializedNames, FilterByCategory, FilterByTag, GetFieldCategory, HasField};
 pub use hlist_ops::{FieldCount, HListVisitor};
 pub use visitor::{FieldVisitor, VisitFields};
 
-use crate::field_meta::field_info::{
-    CollectNames, CollectSerializedNames, FilterByCategory, FilterByTag, GetFieldCategory, HasField,
-};
 
 pub trait FieldKinds: VisitFields {
     type Fields: FieldCount + HListVisitor;
