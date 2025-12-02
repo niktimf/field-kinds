@@ -17,9 +17,9 @@ fn rename_all_camel_case() {
 #[derive(FieldKinds)]
 #[serde(rename_all = "snake_case")]
 struct SnakeCaseStruct {
-    #[clippy::allow(non_snake_case)]
+    #[allow(non_snake_case)]
     userName: String,
-    #[clippy::allow(non_snake_case)]
+    #[allow(non_snake_case)]
     createdAt: u64,
 }
 

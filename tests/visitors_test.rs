@@ -1,10 +1,7 @@
 use field_kinds::{
-    FieldInfo, FieldVisitor, VisitFields, CollectMeta,
-    Numeric, Text, TypeCategory,
-    CollectNames, CollectSerializedNames, FilterByCategory,
-    FilterByTag, HasField, GetFieldCategory,
+    CollectMeta, CollectNames, CollectSerializedNames, FieldInfo, FieldVisitor, FilterByCategory,
+    FilterByTag, GetFieldCategory, HasField, Numeric, Text, TypeCategory, VisitFields,
 };
-
 
 struct TestStruct {
     field_a: i32,
@@ -57,15 +54,27 @@ fn collect_serialized_names() {
 
 #[test]
 fn filter_by_category() {
-    assert_eq!(FilterByCategory::collect::<TestStruct>("numeric"), vec!["field_a"]);
-    assert_eq!(FilterByCategory::collect::<TestStruct>("text"), vec!["field_b"]);
+    assert_eq!(
+        FilterByCategory::collect::<TestStruct>("numeric"),
+        vec!["field_a"]
+    );
+    assert_eq!(
+        FilterByCategory::collect::<TestStruct>("text"),
+        vec!["field_b"]
+    );
     assert!(FilterByCategory::collect::<TestStruct>("bool").is_empty());
 }
 
 #[test]
 fn filter_by_tag() {
-    assert_eq!(FilterByTag::collect::<TestStruct>("indexed"), vec!["field_a", "field_b"]);
-    assert_eq!(FilterByTag::collect::<TestStruct>("primary"), vec!["field_a"]);
+    assert_eq!(
+        FilterByTag::collect::<TestStruct>("indexed"),
+        vec!["field_a", "field_b"]
+    );
+    assert_eq!(
+        FilterByTag::collect::<TestStruct>("primary"),
+        vec!["field_a"]
+    );
     assert!(FilterByTag::collect::<TestStruct>("nonexistent").is_empty());
 }
 
@@ -78,7 +87,10 @@ fn has_field_visitor() {
 
 #[test]
 fn get_field_category() {
-    assert_eq!(GetFieldCategory::get::<TestStruct>("field_a"), Some("numeric"));
+    assert_eq!(
+        GetFieldCategory::get::<TestStruct>("field_a"),
+        Some("numeric")
+    );
     assert_eq!(GetFieldCategory::get::<TestStruct>("field_b"), Some("text"));
     assert_eq!(GetFieldCategory::get::<TestStruct>("nonexistent"), None);
 }

@@ -16,7 +16,10 @@ struct PropTestStruct {
 // Инвариант: FIELD_COUNT == field_names().len()
 #[test]
 fn invariant_count_matches_names_len() {
-    assert_eq!(PropTestStruct::FIELD_COUNT, PropTestStruct::field_names().len());
+    assert_eq!(
+        PropTestStruct::FIELD_COUNT,
+        PropTestStruct::field_names().len()
+    );
 }
 
 // Инвариант: field_names() == serialized_names() когда нет rename
@@ -28,7 +31,10 @@ struct NoRenameStruct {
 
 #[test]
 fn invariant_names_equal_without_rename() {
-    assert_eq!(NoRenameStruct::field_names(), NoRenameStruct::serialized_names());
+    assert_eq!(
+        NoRenameStruct::field_names(),
+        NoRenameStruct::serialized_names()
+    );
 }
 
 // Инвариант: все имена уникальны
@@ -43,7 +49,11 @@ fn invariant_names_unique() {
 #[test]
 fn invariant_has_field_consistent() {
     for name in PropTestStruct::field_names() {
-        assert!(PropTestStruct::has_field(name), "has_field должен быть true для {}", name);
+        assert!(
+            PropTestStruct::has_field(name),
+            "has_field должен быть true для {}",
+            name
+        );
     }
 }
 
@@ -51,15 +61,25 @@ fn invariant_has_field_consistent() {
 #[test]
 fn invariant_category_exists_for_all_fields() {
     for name in PropTestStruct::field_names() {
-        assert!(PropTestStruct::field_category(name).is_some(),
-                "field_category должен вернуть Some для {}", name);
+        assert!(
+            PropTestStruct::field_category(name).is_some(),
+            "field_category должен вернуть Some для {}",
+            name
+        );
     }
 }
 
 // Инвариант: fields_by_category покрывает все поля
 #[test]
 fn invariant_categories_cover_all_fields() {
-    let categories = ["numeric", "text", "bool", "optional", "collection", "unknown"];
+    let categories = [
+        "numeric",
+        "text",
+        "bool",
+        "optional",
+        "collection",
+        "unknown",
+    ];
     let mut all_fields: Vec<&str> = Vec::new();
 
     for cat in categories {
@@ -75,7 +95,10 @@ fn invariant_categories_cover_all_fields() {
 
 #[test]
 fn invariant_meta_len() {
-    assert_eq!(PropTestStruct::field_meta().len(), PropTestStruct::FIELD_COUNT);
+    assert_eq!(
+        PropTestStruct::field_meta().len(),
+        PropTestStruct::FIELD_COUNT
+    );
 }
 
 proptest! {

@@ -5,6 +5,7 @@ edition = "2024"
 license = "MIT"
 description = "Derive macro for compile-time struct field type introspection"
 repository = "https://github.com/niktimf/field-kinds"
+readme = "README.md"
 keywords = ["derive", "macro", "reflection", "introspection", "struct"]
 categories = ["development-tools::procedural-macro-helpers", "rust-patterns"]
 

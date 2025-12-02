@@ -2,17 +2,22 @@
 name = "field-kinds-derive"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 description = "Proc-macro implementation for field-kinds"
+repository = "https://github.com/niktimf/field-kinds"
+readme = "../README.md"
+keywords = ["derive", "macro", "reflection", "introspection", "struct"]
+categories = ["development-tools::procedural-macro-helpers", "rust-patterns"]
 
 [lib]
 proc-macro = true
 
 [dependencies]
-syn = { version = "2", features = ["full", "parsing"] }
-quote = "1"
+syn = { version = "2.0", features = ["full", "parsing"] }
+quote = "1.0"
 proc-macro2 = "1"
 convert_case = "0.10"
-proc-macro-crate = "3"
+proc-macro-crate = "3.4"
 
 [dev-dependencies]
 rstest = "0.26"

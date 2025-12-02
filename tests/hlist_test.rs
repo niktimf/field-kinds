@@ -1,6 +1,5 @@
 use field_kinds::{
-    FieldCount, HListVisitor, FieldInfo, FieldVisitor,
-    VisitFields, Numeric, Text, Bool,
+    Bool, FieldCount, FieldInfo, FieldVisitor, HListVisitor, Numeric, Text, VisitFields,
 };
 use frunk::{HCons, HNil};
 

@@ -1,6 +1,6 @@
-use field_kinds::{Categorized, TypeCategory, Numeric, Text, Bool, Optional, Collection, Unknown};
+use field_kinds::{Bool, Categorized, Collection, Numeric, Optional, Text, TypeCategory, Unknown};
 use rstest::rstest;
-use std::collections::{HashMap, HashSet, BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
 fn category_of<T: Categorized>() -> &'static str {
     <T::Category as TypeCategory>::NAME

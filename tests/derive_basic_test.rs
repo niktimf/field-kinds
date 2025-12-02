@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use field_kinds::{FieldKinds, FieldKindsExt, VisitFields};
+use std::collections::HashMap;
 
 #[derive(FieldKinds)]
 struct SimpleStruct {
@@ -82,6 +82,12 @@ struct CollectionStruct {
 
 #[test]
 fn collection_struct_categories() {
-    assert_eq!(CollectionStruct::fields_by_category("collection"), vec!["items", "data"]);
-    assert_eq!(CollectionStruct::fields_by_category("optional"), vec!["count"]);
+    assert_eq!(
+        CollectionStruct::fields_by_category("collection"),
+        vec!["items", "data"]
+    );
+    assert_eq!(
+        CollectionStruct::fields_by_category("optional"),
+        vec!["count"]
+    );
 }
