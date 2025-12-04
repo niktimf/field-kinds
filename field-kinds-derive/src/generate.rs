@@ -14,10 +14,16 @@ pub fn generate_all(
     let mod_name = module_name(struct_name);
     let active_fields: Vec<_> = fields.iter().filter(|f| !f.skip).collect();
 
-    let field_types = generate_field_types(&active_fields, rename_all, crate_path);
-    let visit_impl = generate_visit_impl(struct_name, &mod_name, &active_fields, crate_path);
-    let field_kinds_impl =
-        generate_field_kinds_impl(struct_name, &mod_name, &active_fields, crate_path);
+    let field_types =
+        generate_field_types(&active_fields, rename_all, crate_path);
+    let visit_impl =
+        generate_visit_impl(struct_name, &mod_name, &active_fields, crate_path);
+    let field_kinds_impl = generate_field_kinds_impl(
+        struct_name,
+        &mod_name,
+        &active_fields,
+        crate_path,
+    );
 
     quote! {
         pub mod #mod_name {

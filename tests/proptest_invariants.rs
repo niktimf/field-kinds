@@ -1,7 +1,9 @@
+#![allow(dead_code, clippy::needless_pass_by_value)]
+
 use field_kinds::{FieldKinds, FieldKindsExt};
 use proptest::prelude::*;
 
-// Тестовая структура для property тестов
+// Test struct for property tests
 #[derive(FieldKinds)]
 struct PropTestStruct {
     #[field_tags("a", "b")]
@@ -13,7 +15,7 @@ struct PropTestStruct {
     field4: Vec<u8>,
 }
 
-// Инвариант: FIELD_COUNT == field_names().len()
+// Invariant: FIELD_COUNT == field_names().len()
 #[test]
 fn invariant_count_matches_names_len() {
     assert_eq!(
@@ -22,7 +24,7 @@ fn invariant_count_matches_names_len() {
     );
 }
 
-// Инвариант: field_names() == serialized_names() когда нет rename
+// Invariant: field_names() == serialized_names() when no rename
 #[derive(FieldKinds)]
 struct NoRenameStruct {
     alpha: i32,
@@ -37,7 +39,7 @@ fn invariant_names_equal_without_rename() {
     );
 }
 
-// Инвариант: все имена уникальны
+// Invariant: all names are unique
 #[test]
 fn invariant_names_unique() {
     let names = PropTestStruct::field_names();
@@ -45,31 +47,29 @@ fn invariant_names_unique() {
     assert_eq!(names.len(), unique.len());
 }
 
-// Инвариант: has_field согласован с field_names
+// Invariant: has_field is consistent with field_names
 #[test]
 fn invariant_has_field_consistent() {
     for name in PropTestStruct::field_names() {
         assert!(
             PropTestStruct::has_field(name),
-            "has_field должен быть true для {}",
-            name
+            "has_field should be true for {name}"
         );
     }
 }
 
-// Инвариант: field_category возвращает Some для всех существующих полей
+// Invariant: field_category returns Some for all existing fields
 #[test]
 fn invariant_category_exists_for_all_fields() {
     for name in PropTestStruct::field_names() {
         assert!(
             PropTestStruct::field_category(name).is_some(),
-            "field_category должен вернуть Some для {}",
-            name
+            "field_category should return Some for {name}"
         );
     }
 }
 
-// Инвариант: fields_by_category покрывает все поля
+// Invariant: fields_by_category covers all fields
 #[test]
 fn invariant_categories_cover_all_fields() {
     let categories = [
@@ -87,18 +87,15 @@ fn invariant_categories_cover_all_fields() {
     }
 
     let mut expected = PropTestStruct::field_names();
-    all_fields.sort();
-    expected.sort();
+    all_fields.sort_unstable();
+    expected.sort_unstable();
 
     assert_eq!(all_fields, expected);
 }
 
 #[test]
 fn invariant_meta_len() {
-    assert_eq!(
-        PropTestStruct::field_meta().len(),
-        PropTestStruct::FIELD_COUNT
-    );
+    assert_eq!(PropTestStruct::field_meta().len(), PropTestStruct::FIELD_COUNT);
 }
 
 proptest! {

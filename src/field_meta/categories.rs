@@ -1,24 +1,34 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
+/// Trait for type category markers.
+///
+/// Implemented by category marker types ([`Numeric`], [`Text`], etc.).
 pub trait TypeCategory: 'static + Copy {
+    /// String name of the category (e.g., "numeric", "text").
     const NAME: &'static str;
 }
 
+/// Marker type for numeric types (`i8`-`i128`, `u8`-`u128`, `f32`, `f64`, `isize`, `usize`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Numeric;
 
+/// Marker type for text types (`String`, `&str`, `Box<str>`, `char`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Text;
 
+/// Marker type for boolean type.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Bool;
 
+/// Marker type for optional types (`Option<T>`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Optional;
 
+/// Marker type for collection types (`Vec`, `HashSet`, `HashMap`, arrays, slices).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Collection;
 
+/// Marker type for types that don't match any known category.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Unknown;
 
@@ -41,27 +51,26 @@ impl TypeCategory for Unknown {
     const NAME: &'static str = "unknown";
 }
 
-pub trait IsNumeric {}
-impl IsNumeric for Numeric {}
-
-pub trait IsText {}
-impl IsText for Text {}
-
-pub trait IsBool {}
-impl IsBool for Bool {}
-
-pub trait IsOptional {}
-impl IsOptional for Optional {}
-
-pub trait IsCollection {}
-impl IsCollection for Collection {}
-
+/// Trait for mapping Rust types to their categories.
+///
+/// Implement this trait for custom types to enable automatic categorization.
+///
+/// # Example
+///
+/// ```rust
+/// use field_kinds::{Categorized, Numeric};
+///
+/// struct MyNumber(i32);
+///
+/// impl Categorized for MyNumber {
+///     type Category = Numeric;
+/// }
+/// ```
 pub trait Categorized {
+    /// The category marker type for this type.
     type Category: TypeCategory;
 }
 
-// Numeric
-// u*
 impl Categorized for u8 {
     type Category = Numeric;
 }
@@ -81,7 +90,6 @@ impl Categorized for usize {
     type Category = Numeric;
 }
 
-// i*
 impl Categorized for i8 {
     type Category = Numeric;
 }
@@ -101,7 +109,6 @@ impl Categorized for isize {
     type Category = Numeric;
 }
 
-// f*
 impl Categorized for f32 {
     type Category = Numeric;
 }
@@ -109,7 +116,6 @@ impl Categorized for f64 {
     type Category = Numeric;
 }
 
-// Text
 impl Categorized for String {
     type Category = Text;
 }
@@ -123,17 +129,14 @@ impl Categorized for char {
     type Category = Text;
 }
 
-// Bool
 impl Categorized for bool {
     type Category = Bool;
 }
 
-// Optional
 impl<T> Categorized for Option<T> {
     type Category = Optional;
 }
 
-// Collection
 impl<T> Categorized for Vec<T> {
     type Category = Collection;
 }
@@ -143,13 +146,13 @@ impl<T, const N: usize> Categorized for [T; N] {
 impl<T> Categorized for &[T] {
     type Category = Collection;
 }
-impl<T> Categorized for HashSet<T> {
+impl<T, S> Categorized for HashSet<T, S> {
     type Category = Collection;
 }
 impl<T> Categorized for BTreeSet<T> {
     type Category = Collection;
 }
-impl<K, V> Categorized for HashMap<K, V> {
+impl<K, V, S> Categorized for HashMap<K, V, S> {
     type Category = Collection;
 }
 impl<K, V> Categorized for BTreeMap<K, V> {

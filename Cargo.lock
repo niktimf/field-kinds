@@ -92,9 +92,7 @@ dependencies = [
  "convert_case",
  "proc-macro-crate",
  "proc-macro2",
- "proptest",
  "quote",
- "rstest",
  "syn",
 ]
 

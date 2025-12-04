@@ -1,90 +1,66 @@
 mod categories;
 mod field_info;
 mod hlist_ops;
-mod visitor;
+mod visitors;
 
 pub use categories::{
-    Bool, Categorized, Collection, Numeric, Optional, Text, TypeCategory, Unknown,
+    Bool, Categorized, Collection, Numeric, Optional, Text, TypeCategory,
+    Unknown,
 };
-pub use field_info::{
-    CollectNames, CollectSerializedNames, FieldInfo, FilterByCategory, FilterByTag,
-    GetFieldCategory, HasField,
-};
+pub use field_info::FieldInfo;
 pub use hlist_ops::{FieldCount, HListVisitor};
-pub use visitor::{FieldVisitor, VisitFields};
+pub use visitors::{
+    CollectMeta, CollectNames, CollectSerializedNames, FieldMeta, FieldVisitor,
+    FilterByCategory, FilterByTag, GetFieldCategory, HasField, VisitFields,
+};
 
+/// Trait implemented by structs deriving [`FieldKinds`](derive@crate::FieldKinds).
+///
+/// Provides compile-time field count and access to field type information
+/// via an `HList` of field marker types.
 pub trait FieldKinds: VisitFields {
+    /// `HList` type containing marker types for each field.
     type Fields: FieldCount + HListVisitor;
 
+    /// Number of fields in the struct (compile-time constant).
     const FIELD_COUNT: usize = Self::Fields::COUNT;
 }
 
-#[derive(Debug, Clone)]
-pub struct FieldMeta {
-    pub name: &'static str,
-    pub serialized_name: &'static str,
-    pub category: &'static str,
-    pub tags: &'static [&'static str],
-    pub type_name: &'static str,
-}
-
-pub struct CollectMeta(pub Vec<FieldMeta>);
-
-impl CollectMeta {
-    pub fn new() -> Self {
-        Self(Vec::new())
-    }
-
-    pub fn collect<T: VisitFields + ?Sized>() -> Vec<FieldMeta> {
-        let mut v = Self::new();
-        T::visit_fields(&mut v);
-        v.0
-    }
-}
-
-impl Default for CollectMeta {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl FieldVisitor for CollectMeta {
-    fn visit<F: FieldInfo>(&mut self) {
-        self.0.push(FieldMeta {
-            name: F::NAME,
-            serialized_name: F::SERIALIZED_NAME,
-            category: F::CATEGORY_NAME,
-            tags: F::TAGS,
-            type_name: std::any::type_name::<F::Value>(),
-        });
-    }
-}
-
+/// Extension trait providing convenient methods for field introspection.
+///
+/// Automatically implemented for all types that implement [`VisitFields`].
 pub trait FieldKindsExt: VisitFields {
+    /// Returns original field names.
     fn field_names() -> Vec<&'static str> {
         CollectNames::collect::<Self>()
     }
 
+    /// Returns serialized field names (respecting `#[serde(rename)]`).
     fn serialized_names() -> Vec<&'static str> {
         CollectSerializedNames::collect::<Self>()
     }
 
+    /// Returns field names matching the given category.
     fn fields_by_category(category: &str) -> Vec<&'static str> {
         FilterByCategory::collect::<Self>(category)
     }
 
+    /// Returns field names that have the given tag.
     fn fields_by_tag(tag: &str) -> Vec<&'static str> {
         FilterByTag::collect::<Self>(tag)
     }
 
+    /// Checks if a field with the given name exists.
     fn has_field(name: &str) -> bool {
         HasField::check::<Self>(name)
     }
 
+    /// Returns the category of a field by name, or `None` if not found.
     fn field_category(name: &str) -> Option<&'static str> {
         GetFieldCategory::get::<Self>(name)
     }
 
+    /// Returns full metadata for all fields.
     fn field_meta() -> Vec<FieldMeta> {
         CollectMeta::collect::<Self>()
     }

@@ -1,8 +1,13 @@
-use field_kinds::{Bool, Categorized, Collection, Numeric, Optional, Text, TypeCategory, Unknown};
+#![allow(clippy::needless_pass_by_value)]
+
+use field_kinds::{
+    Bool, Categorized, Collection, Numeric, Optional, Text, TypeCategory,
+    Unknown,
+};
 use rstest::rstest;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
-fn category_of<T: Categorized>() -> &'static str {
+const fn category_of<T: Categorized>() -> &'static str {
     <T::Category as TypeCategory>::NAME
 }
 
@@ -36,7 +41,6 @@ fn numeric_types(#[case] category: &str) {
     assert_eq!(category, "numeric");
 }
 
-// Text types
 #[rstest]
 #[case::string(category_of::<String>())]
 #[case::str_ref(category_of::<&str>())]
@@ -46,14 +50,12 @@ fn text_types(#[case] category: &str) {
     assert_eq!(category, "text");
 }
 
-// Bool
 #[rstest]
 #[case::bool_type(category_of::<bool>())]
 fn bool_type(#[case] category: &str) {
     assert_eq!(category, "bool");
 }
 
-// Optional
 #[rstest]
 #[case::option_i32(category_of::<Option<i32>>())]
 #[case::option_string(category_of::<Option<String>>())]
@@ -62,7 +64,6 @@ fn optional_types(#[case] category: &str) {
     assert_eq!(category, "optional");
 }
 
-// Collection types
 #[rstest]
 #[case::vec(category_of::<Vec<i32>>())]
 #[case::array(category_of::<[i32; 5]>())]

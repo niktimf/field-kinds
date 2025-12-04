@@ -1,5 +1,7 @@
+#![allow(dead_code)]
+
 use field_kinds::{
-    Bool, FieldCount, FieldInfo, FieldVisitor, HListVisitor, Numeric, Text, VisitFields,
+    Bool, FieldCount, FieldInfo, FieldVisitor, HListVisitor, Numeric, Text,
 };
 use frunk::{HCons, HNil};
 
@@ -107,7 +109,7 @@ fn hlist_visitor_three() {
     assert_eq!(v.0, 3);
 }
 
-// Проверяем порядок обхода
+// Check traversal order
 struct OrderVisitor(Vec<&'static str>);
 
 impl FieldVisitor for OrderVisitor {

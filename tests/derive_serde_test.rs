@@ -1,3 +1,5 @@
+#![allow(dead_code, non_snake_case)]
+
 use field_kinds::{FieldKinds, FieldKindsExt};
 
 #[derive(FieldKinds)]
@@ -84,7 +86,7 @@ fn field_rename() {
     assert_eq!(names, vec!["ID", "displayName", "normal_field"]);
 }
 
-// Комбинация rename_all + field rename
+// Combination of rename_all + field rename
 #[derive(FieldKinds)]
 #[serde(rename_all = "camelCase")]
 struct CombinedRenameStruct {

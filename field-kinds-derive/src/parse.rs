@@ -3,8 +3,8 @@ use syn::{Attribute, DeriveInput, Field, Ident, Lit, Meta, Result};
 
 use crate::field::ParsedField;
 
-/// Parses rename_all from #[serde(rename_all = "...")]
-pub fn parse_rename_all(attrs: &[Attribute]) -> Option<Case> {
+/// Parses `rename_all` from `#[serde(rename_all = "...")]`
+pub fn parse_rename_all(attrs: &[Attribute]) -> Option<Case<'_>> {
     for attr in attrs {
         if !attr.path().is_ident("serde") {
             continue;
@@ -15,17 +15,13 @@ pub fn parse_rename_all(attrs: &[Attribute]) -> Option<Case> {
             .ok()?;
 
         for meta in nested {
-            if let Meta::NameValue(nv) = meta {
-                if nv.path.is_ident("rename_all") {
-                    if let syn::Expr::Lit(syn::ExprLit {
-                        lit: Lit::Str(s), ..
-                    }) = nv.value
-                    {
-                        let val = s.value();
-                        let case: Option<Case> = string_to_case(&val);
-                        return case;
-                    }
-                }
+            if let Meta::NameValue(nv) = meta
+                && nv.path.is_ident("rename_all")
+                && let syn::Expr::Lit(syn::ExprLit {
+                    lit: Lit::Str(s), ..
+                }) = nv.value
+            {
+                return string_to_case(&s.value());
             }
         }
     }
@@ -76,15 +72,13 @@ fn parse_field_rename(field: &Field) -> Option<String> {
             .ok()?;
 
         for meta in nested {
-            if let Meta::NameValue(nv) = meta {
-                if nv.path.is_ident("rename") {
-                    if let syn::Expr::Lit(syn::ExprLit {
-                        lit: Lit::Str(s), ..
-                    }) = nv.value
-                    {
-                        return Some(s.value());
-                    }
-                }
+            if let Meta::NameValue(nv) = meta
+                && nv.path.is_ident("rename")
+                && let syn::Expr::Lit(syn::ExprLit {
+                    lit: Lit::Str(s), ..
+                }) = nv.value
+            {
+                return Some(s.value());
             }
         }
     }
@@ -93,21 +87,21 @@ fn parse_field_rename(field: &Field) -> Option<String> {
 
 fn parse_field_tags(field: &Field) -> Vec<String> {
     for attr in &field.attrs {
-        if attr.path().is_ident("field_tags") {
-            if let Ok(args) = attr.parse_args_with(
+        if attr.path().is_ident("field_tags")
+            && let Ok(args) = attr.parse_args_with(
                 syn::punctuated::Punctuated::<Lit, syn::Token![,]>::parse_terminated,
-            ) {
-                return args
-                    .iter()
-                    .filter_map(|lit| {
-                        if let Lit::Str(s) = lit {
-                            Some(s.value())
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-            }
+            )
+        {
+            return args
+                .iter()
+                .filter_map(|lit| {
+                    if let Lit::Str(s) = lit {
+                        Some(s.value())
+                    } else {
+                        None
+                    }
+                })
+                .collect();
         }
     }
     Vec::new()
@@ -115,12 +109,11 @@ fn parse_field_tags(field: &Field) -> Vec<String> {
 
 fn parse_field_skip(field: &Field) -> bool {
     for attr in &field.attrs {
-        if attr.path().is_ident("field_kinds") {
-            if let Ok(meta) = attr.parse_args::<Ident>() {
-                if meta == "skip" {
-                    return true;
-                }
-            }
+        if attr.path().is_ident("field_kinds")
+            && let Ok(meta) = attr.parse_args::<Ident>()
+            && meta == "skip"
+        {
+            return true;
         }
     }
     false

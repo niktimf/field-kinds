@@ -1,6 +1,9 @@
+#![allow(dead_code, unused_imports)]
+
 use field_kinds::{
-    CollectMeta, CollectNames, CollectSerializedNames, FieldInfo, FieldVisitor, FilterByCategory,
-    FilterByTag, GetFieldCategory, HasField, Numeric, Text, TypeCategory, VisitFields,
+    CollectMeta, CollectNames, CollectSerializedNames, FieldInfo, FieldVisitor,
+    FilterByCategory, FilterByTag, GetFieldCategory, HasField, Numeric, Text,
+    TypeCategory, VisitFields,
 };
 
 struct TestStruct {
@@ -32,7 +35,7 @@ impl FieldInfo for FieldB {
     type Category = Text;
 }
 
-// Ручной impl VisitFields
+// Manual impl VisitFields
 impl VisitFields for TestStruct {
     fn visit_fields<V: FieldVisitor>(visitor: &mut V) {
         visitor.visit::<FieldA>();
@@ -71,10 +74,7 @@ fn filter_by_tag() {
         FilterByTag::collect::<TestStruct>("indexed"),
         vec!["field_a", "field_b"]
     );
-    assert_eq!(
-        FilterByTag::collect::<TestStruct>("primary"),
-        vec!["field_a"]
-    );
+    assert_eq!(FilterByTag::collect::<TestStruct>("primary"), vec!["field_a"]);
     assert!(FilterByTag::collect::<TestStruct>("nonexistent").is_empty());
 }
 
@@ -87,10 +87,7 @@ fn has_field_visitor() {
 
 #[test]
 fn get_field_category() {
-    assert_eq!(
-        GetFieldCategory::get::<TestStruct>("field_a"),
-        Some("numeric")
-    );
+    assert_eq!(GetFieldCategory::get::<TestStruct>("field_a"), Some("numeric"));
     assert_eq!(GetFieldCategory::get::<TestStruct>("field_b"), Some("text"));
     assert_eq!(GetFieldCategory::get::<TestStruct>("nonexistent"), None);
 }

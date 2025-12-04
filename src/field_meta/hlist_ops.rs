@@ -1,8 +1,10 @@
 use crate::field_meta::field_info::FieldInfo;
-use crate::field_meta::visitor::FieldVisitor;
+use crate::field_meta::visitors::FieldVisitor;
 use frunk::{HCons, HNil};
 
+/// Trait for counting fields in an `HList`.
 pub trait FieldCount {
+    /// Number of fields.
     const COUNT: usize;
 }
 
@@ -14,7 +16,9 @@ impl<H: FieldInfo, T: FieldCount> FieldCount for HCons<H, T> {
     const COUNT: usize = 1 + T::COUNT;
 }
 
+/// Trait for visiting all fields in an `HList`.
 pub trait HListVisitor {
+    /// Visits all fields in the `HList` with the given visitor.
     fn visit_all<V: FieldVisitor>(visitor: &mut V);
 }
 

@@ -1,6 +1,3 @@
-#![warn(clippy::all, clippy::pedantic, clippy::nursery, clippy::cargo)]
-#![allow(clippy::module_name_repetitions)] // Позволяем повторения имен модулей в типах
-
 mod field;
 mod generate;
 mod parse;
@@ -14,33 +11,29 @@ use syn::parse_macro_input;
 pub fn derive_field_kinds(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
 
-    match derive_impl(input) {
+    match derive_impl(&input) {
         Ok(tokens) => tokens.into(),
         Err(err) => err.to_compile_error().into(),
     }
 }
 
-fn derive_impl(input: syn::DeriveInput) -> syn::Result<proc_macro2::TokenStream> {
+fn derive_impl(
+    input: &syn::DeriveInput,
+) -> syn::Result<proc_macro2::TokenStream> {
     let struct_name = &input.ident;
     let rename_all = parse::parse_rename_all(&input.attrs);
-    let fields = parse::parse_fields(&input)?;
+    let fields = parse::parse_fields(input)?;
     let crate_path = resolve_crate_path();
 
-    Ok(generate::generate_all(
-        struct_name,
-        &fields,
-        rename_all,
-        &crate_path,
-    ))
+    Ok(generate::generate_all(struct_name, &fields, rename_all, &crate_path))
 }
 
 fn resolve_crate_path() -> proc_macro2::TokenStream {
     match crate_name("field-kinds") {
-        Ok(FoundCrate::Itself) => quote! { crate },
         Ok(FoundCrate::Name(name)) => {
             let ident = format_ident!("{}", name);
             quote! { ::#ident }
         }
-        Err(_) => quote! { ::field_kinds },
+        Ok(FoundCrate::Itself) | Err(_) => quote! { ::field_kinds },
     }
 }

@@ -1,4 +1,6 @@
-use field_kinds::{FieldKinds, FieldKindsExt, VisitFields};
+#![allow(dead_code, unused_imports)]
+
+use field_kinds::{FieldKinds, FieldKindsExt};
 use std::collections::HashMap;
 
 #[derive(FieldKinds)]
@@ -86,8 +88,5 @@ fn collection_struct_categories() {
         CollectionStruct::fields_by_category("collection"),
         vec!["items", "data"]
     );
-    assert_eq!(
-        CollectionStruct::fields_by_category("optional"),
-        vec!["count"]
-    );
+    assert_eq!(CollectionStruct::fields_by_category("optional"), vec!["count"]);
 }

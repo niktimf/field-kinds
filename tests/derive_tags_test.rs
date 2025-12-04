@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use field_kinds::{FieldKinds, FieldKindsExt};
 
 #[derive(FieldKinds)]

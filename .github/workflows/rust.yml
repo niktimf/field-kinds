@@ -1,0 +1,62 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit,cargo-outdated,cargo-machete
+      
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      
+      - name: Run Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+      
+      - name: Security audit
+        run: cargo audit
+      
+      - name: Check outdated dependencies
+        run: cargo outdated || true
+      
+      - name: Check unused dependencies
+        run: cargo machete
+      
+      - name: Run tests
+        run: cargo test --verbose
+      
+      - name: Run doc tests
+        run: cargo test --doc
+
+  msrv:
+    name: MSRV (1.85.0)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust 1.85.0
+        uses: dtolnay/rust-toolchain@1.85.0
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Check
+        run: cargo check --all-targets
