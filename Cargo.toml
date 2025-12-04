@@ -2,7 +2,7 @@
 name = "field-kinds"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85.0"
+rust-version = "1.90.0"
 license = "MIT"
 description = "Derive macro for compile-time struct field type introspection"
 authors = ["Nikita Timofeenko"]
