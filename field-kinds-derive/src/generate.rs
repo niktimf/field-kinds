@@ -16,8 +16,12 @@ pub fn generate_all(
 
     let field_types =
         generate_field_types(&active_fields, rename_all, crate_path);
-    let visit_impl =
-        generate_visit_impl(struct_name, &mod_name, &active_fields, crate_path);
+    let visit_impl = generate_visit_impl(
+        struct_name,
+        &active_fields,
+        rename_all,
+        crate_path,
+    );
     let field_kinds_impl = generate_field_kinds_impl(
         struct_name,
         &mod_name,
@@ -80,23 +84,39 @@ fn generate_field_types(
 
 fn generate_visit_impl(
     struct_name: &Ident,
-    mod_name: &Ident,
     fields: &[&ParsedField],
+    rename_all: Option<Case>,
     crate_path: &TokenStream,
 ) -> TokenStream {
-    let visit_calls: Vec<_> = fields
+    let field_metas: Vec<_> = fields
         .iter()
         .map(|f| {
-            let type_name = f.marker_type_name();
-            quote! { visitor.visit::<#mod_name::#type_name>(); }
+            let name = f.ident.to_string();
+            let serialized_name = f.serialized_name(rename_all);
+            let field_type = &f.ty;
+            let tags = &f.tags;
+            let tags_tokens = if tags.is_empty() {
+                quote! { &[] }
+            } else {
+                quote! { &[#(#tags),*] }
+            };
+
+            quote! {
+                #crate_path::FieldMeta {
+                    name: #name,
+                    serialized_name: #serialized_name,
+                    category: <<#field_type as #crate_path::Categorized>::Category as #crate_path::TypeCategory>::NAME,
+                    tags: #tags_tokens,
+                }
+            }
         })
         .collect();
 
     quote! {
         impl #crate_path::VisitFields for #struct_name {
-            fn visit_fields<V: #crate_path::FieldVisitor>(visitor: &mut V) {
-                #(#visit_calls)*
-            }
+            const FIELDS: &'static [#crate_path::FieldMeta] = &[
+                #(#field_metas),*
+            ];
         }
     }
 }

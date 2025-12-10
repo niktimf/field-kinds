@@ -12,20 +12,20 @@ Compile-time struct field introspection for Rust.
 - **Serialized names** - Supports `#[serde(rename)]` and `#[serde(rename_all)]`
 - **Type categories** - Automatic categorization: numeric, text, bool, optional, collection
 - **Custom tags** - Add arbitrary tags via `#[field_tags("tag1", "tag2")]`
-- **Visitor pattern** - Extensible via `FieldVisitor` trait
+- **Static metadata** - All field info available as `const FIELDS: &'static [FieldMeta]`
 - **Zero runtime cost** - All metadata computed at compile time
 
 ## Installation
 
 ```toml
 [dependencies]
-field-kinds = "0.1"
+field-kinds = "0.2"
 ```
 
 ## Quick Start
 
 ```rust
-use field_kinds::{FieldKinds, FieldKindsExt};
+use field_kinds::{FieldKinds, FieldKindsExt, VisitFields};
 
 #[derive(FieldKinds)]
 #[serde(rename_all = "camelCase")]
@@ -59,9 +59,12 @@ fn main() {
     // Get field category
     assert_eq!(User::field_category("user_id"), Some("numeric"));
     
-    // Get full metadata
-    for field in User::field_meta() {
-        println!("{}: {} ({})", field.name, field.type_name, field.category);
+    // Access static metadata directly
+    assert_eq!(User::FIELDS.len(), 4);
+    
+    // Iterate over field metadata
+    for field in User::FIELDS {
+        println!("{}: {} [{:?}]", field.name, field.category, field.tags);
     }
 }
 ```
@@ -111,35 +114,9 @@ impl Categorized for Money {
 }
 ```
 
-## Custom Visitors
-
-Create custom field visitors by implementing `FieldVisitor`:
-
-```rust
-use field_kinds::{FieldVisitor, FieldInfo, VisitFields, FieldKinds};
-
-struct FieldCounter(usize);
-
-impl FieldVisitor for FieldCounter {
-    fn visit<F: FieldInfo>(&mut self) {
-        self.0 += 1;
-    }
-}
-
-#[derive(FieldKinds)]
-struct MyStruct {
-    a: i32,
-    b: String,
-}
-
-let mut counter = FieldCounter(0);
-MyStruct::visit_fields(&mut counter);
-assert_eq!(counter.0, 2);
-```
-
 ## MSRV
 
-Minimum supported Rust version is **1.85.0** (Rust 2024 edition).
+Minimum supported Rust version is **1.90.0** (Rust 2024 edition).
 
 ## License
 

@@ -1,6 +1,6 @@
 [package]
 name = "field-kinds"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.90.0"
 license = "MIT"
@@ -12,7 +12,7 @@ keywords = ["derive", "macro", "reflection", "introspection", "struct"]
 categories = ["development-tools::procedural-macro-helpers", "rust-patterns"]
 
 [dependencies]
-field-kinds-derive = { path = "field-kinds-derive", version = "0.1.0" }
+field-kinds-derive = { path = "field-kinds-derive", version = "0.2.0" }
 frunk = "0.4"
 
 [dev-dependencies]

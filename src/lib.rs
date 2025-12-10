@@ -12,13 +12,13 @@
 //! - **Serialized names**: Supports `#[serde(rename)]` and `#[serde(rename_all)]`
 //! - **Type categories**: Automatic categorization (numeric, text, bool, optional, collection)
 //! - **Custom tags**: Add arbitrary tags to fields via `#[field_tags("tag1", "tag2")]`
-//! - **Visitor pattern**: Extensible via [`FieldVisitor`] trait
+//! - **Static metadata**: All field info available as `const FIELDS: &'static [FieldMeta]`
 //! - **Zero runtime cost**: All metadata is computed at compile time
 //!
 //! # Example
 //!
 //! ```rust
-//! use field_kinds::{FieldKinds, FieldKindsExt};
+//! use field_kinds::{FieldKinds, FieldKindsExt, VisitFields};
 //!
 //! #[derive(FieldKinds)]
 //! #[serde(rename_all = "camelCase")]
@@ -46,6 +46,9 @@
 //! // Check field existence
 //! assert!(User::has_field("user_id"));
 //! assert!(!User::has_field("nonexistent"));
+//!
+//! // Access static metadata directly
+//! assert_eq!(User::FIELDS.len(), 4);
 //! ```
 //!
 //! # Attributes
@@ -64,9 +67,7 @@ mod field_meta;
 
 pub use field_kinds_derive::FieldKinds;
 pub use field_meta::{
-    Bool, Categorized, CollectMeta, CollectNames, CollectSerializedNames,
-    Collection, FieldCount, FieldInfo, FieldKinds, FieldKindsExt, FieldMeta,
-    FieldVisitor, FilterByCategory, FilterByTag, GetFieldCategory,
-    HListVisitor, HasField, Numeric, Optional, Text, TypeCategory, Unknown,
-    VisitFields,
+    Bool, Categorized, Collection, FieldCount, FieldInfo, FieldKinds,
+    FieldKindsExt, FieldMeta, HListVisitor, Numeric, Optional, Text,
+    TypeCategory, Unknown, VisitFields,
 };

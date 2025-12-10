@@ -1,9 +1,7 @@
 #![allow(dead_code, unused_imports)]
 
 use field_kinds::{
-    CollectMeta, CollectNames, CollectSerializedNames, FieldInfo, FieldVisitor,
-    FilterByCategory, FilterByTag, GetFieldCategory, HasField, Numeric, Text,
-    TypeCategory, VisitFields,
+    FieldInfo, FieldMeta, Numeric, Text, TypeCategory, VisitFields,
 };
 
 struct TestStruct {
@@ -35,66 +33,123 @@ impl FieldInfo for FieldB {
     type Category = Text;
 }
 
-// Manual impl VisitFields
 impl VisitFields for TestStruct {
-    fn visit_fields<V: FieldVisitor>(visitor: &mut V) {
-        visitor.visit::<FieldA>();
-        visitor.visit::<FieldB>();
-    }
+    const FIELDS: &'static [FieldMeta] = &[
+        FieldMeta {
+            name: "field_a",
+            serialized_name: "fieldA",
+            category: "numeric",
+            tags: &["primary", "indexed"],
+        },
+        FieldMeta {
+            name: "field_b",
+            serialized_name: "field_b",
+            category: "text",
+            tags: &["indexed"],
+        },
+    ];
 }
 
 #[test]
-fn collect_names() {
-    let names = CollectNames::collect::<TestStruct>();
+fn field_names() {
+    let names: Vec<_> = TestStruct::FIELDS.iter().map(|f| f.name).collect();
     assert_eq!(names, vec!["field_a", "field_b"]);
 }
 
 #[test]
-fn collect_serialized_names() {
-    let names = CollectSerializedNames::collect::<TestStruct>();
+fn serialized_names() {
+    let names: Vec<_> = TestStruct::FIELDS
+        .iter()
+        .map(|f| f.serialized_name)
+        .collect();
     assert_eq!(names, vec!["fieldA", "field_b"]);
 }
 
 #[test]
 fn filter_by_category() {
-    assert_eq!(
-        FilterByCategory::collect::<TestStruct>("numeric"),
-        vec!["field_a"]
-    );
-    assert_eq!(
-        FilterByCategory::collect::<TestStruct>("text"),
-        vec!["field_b"]
-    );
-    assert!(FilterByCategory::collect::<TestStruct>("bool").is_empty());
+    let numeric: Vec<_> = TestStruct::FIELDS
+        .iter()
+        .filter(|f| f.category == "numeric")
+        .map(|f| f.name)
+        .collect();
+    assert_eq!(numeric, vec!["field_a"]);
+
+    let text: Vec<_> = TestStruct::FIELDS
+        .iter()
+        .filter(|f| f.category == "text")
+        .map(|f| f.name)
+        .collect();
+    assert_eq!(text, vec!["field_b"]);
+
+    let bool_fields = TestStruct::FIELDS
+        .iter()
+        .filter(|f| f.category == "bool")
+        .map(|f| f.name)
+        .next()
+        .is_none();
+    assert!(bool_fields);
 }
 
 #[test]
 fn filter_by_tag() {
-    assert_eq!(
-        FilterByTag::collect::<TestStruct>("indexed"),
-        vec!["field_a", "field_b"]
-    );
-    assert_eq!(FilterByTag::collect::<TestStruct>("primary"), vec!["field_a"]);
-    assert!(FilterByTag::collect::<TestStruct>("nonexistent").is_empty());
+    let indexed: Vec<_> = TestStruct::FIELDS
+        .iter()
+        .filter(|f| f.tags.contains(&"indexed"))
+        .map(|f| f.name)
+        .collect();
+    assert_eq!(indexed, vec!["field_a", "field_b"]);
+
+    let primary: Vec<_> = TestStruct::FIELDS
+        .iter()
+        .filter(|f| f.tags.contains(&"primary"))
+        .map(|f| f.name)
+        .collect();
+    assert_eq!(primary, vec!["field_a"]);
+
+    let nonexistent = TestStruct::FIELDS
+        .iter()
+        .filter(|f| f.tags.contains(&"nonexistent"))
+        .map(|f| f.name)
+        .next()
+        .is_none();
+    assert!(nonexistent);
 }
 
 #[test]
-fn has_field_visitor() {
-    assert!(HasField::check::<TestStruct>("field_a"));
-    assert!(HasField::check::<TestStruct>("field_b"));
-    assert!(!HasField::check::<TestStruct>("field_c"));
+fn has_field() {
+    assert!(TestStruct::FIELDS.iter().any(|f| f.name == "field_a"));
+    assert!(TestStruct::FIELDS.iter().any(|f| f.name == "field_b"));
+    assert!(!TestStruct::FIELDS.iter().any(|f| f.name == "field_c"));
 }
 
 #[test]
 fn get_field_category() {
-    assert_eq!(GetFieldCategory::get::<TestStruct>("field_a"), Some("numeric"));
-    assert_eq!(GetFieldCategory::get::<TestStruct>("field_b"), Some("text"));
-    assert_eq!(GetFieldCategory::get::<TestStruct>("nonexistent"), None);
+    assert_eq!(
+        TestStruct::FIELDS
+            .iter()
+            .find(|f| f.name == "field_a")
+            .map(|f| f.category),
+        Some("numeric")
+    );
+    assert_eq!(
+        TestStruct::FIELDS
+            .iter()
+            .find(|f| f.name == "field_b")
+            .map(|f| f.category),
+        Some("text")
+    );
+    assert_eq!(
+        TestStruct::FIELDS
+            .iter()
+            .find(|f| f.name == "nonexistent")
+            .map(|f| f.category),
+        None
+    );
 }
 
 #[test]
-fn collect_meta() {
-    let meta = CollectMeta::collect::<TestStruct>();
+fn field_meta() {
+    let meta = TestStruct::FIELDS;
     assert_eq!(meta.len(), 2);
 
     assert_eq!(meta[0].name, "field_a");
@@ -115,4 +170,11 @@ fn field_info_has_tag() {
 
     assert!(FieldB::has_tag("indexed"));
     assert!(!FieldB::has_tag("primary"));
+}
+
+#[test]
+fn field_meta_has_tag() {
+    assert!(TestStruct::FIELDS[0].has_tag("primary"));
+    assert!(TestStruct::FIELDS[0].has_tag("indexed"));
+    assert!(!TestStruct::FIELDS[0].has_tag("nonexistent"));
 }

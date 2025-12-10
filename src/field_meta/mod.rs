@@ -9,10 +9,7 @@ pub use categories::{
 };
 pub use field_info::FieldInfo;
 pub use hlist_ops::{FieldCount, HListVisitor};
-pub use visitors::{
-    CollectMeta, CollectNames, CollectSerializedNames, FieldMeta, FieldVisitor,
-    FilterByCategory, FilterByTag, GetFieldCategory, HasField, VisitFields,
-};
+pub use visitors::{FieldMeta, VisitFields};
 
 /// Trait implemented by structs deriving [`FieldKinds`](derive@crate::FieldKinds).
 ///
@@ -32,37 +29,48 @@ pub trait FieldKinds: VisitFields {
 pub trait FieldKindsExt: VisitFields {
     /// Returns original field names.
     fn field_names() -> Vec<&'static str> {
-        CollectNames::collect::<Self>()
+        Self::FIELDS.iter().map(|f| f.name).collect()
     }
 
     /// Returns serialized field names (respecting `#[serde(rename)]`).
     fn serialized_names() -> Vec<&'static str> {
-        CollectSerializedNames::collect::<Self>()
+        Self::FIELDS.iter().map(|f| f.serialized_name).collect()
     }
 
     /// Returns field names matching the given category.
     fn fields_by_category(category: &str) -> Vec<&'static str> {
-        FilterByCategory::collect::<Self>(category)
+        Self::FIELDS
+            .iter()
+            .filter(|f| f.category == category)
+            .map(|f| f.name)
+            .collect()
     }
 
     /// Returns field names that have the given tag.
     fn fields_by_tag(tag: &str) -> Vec<&'static str> {
-        FilterByTag::collect::<Self>(tag)
+        Self::FIELDS
+            .iter()
+            .filter(|f| f.tags.contains(&tag))
+            .map(|f| f.name)
+            .collect()
     }
 
     /// Checks if a field with the given name exists.
     fn has_field(name: &str) -> bool {
-        HasField::check::<Self>(name)
+        Self::FIELDS.iter().any(|f| f.name == name)
     }
 
     /// Returns the category of a field by name, or `None` if not found.
     fn field_category(name: &str) -> Option<&'static str> {
-        GetFieldCategory::get::<Self>(name)
+        Self::FIELDS
+            .iter()
+            .find(|f| f.name == name)
+            .map(|f| f.category)
     }
 
     /// Returns full metadata for all fields.
-    fn field_meta() -> Vec<FieldMeta> {
-        CollectMeta::collect::<Self>()
+    fn field_meta() -> &'static [FieldMeta] {
+        Self::FIELDS
     }
 }
 
