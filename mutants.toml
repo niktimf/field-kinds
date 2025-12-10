@@ -1,0 +1,13 @@
+# Mutants that cause infinite loops (timeout) - impossible to test
+[[exclude_re]]
+pattern = "replace \\+= with \\*= in"
+
+# Mutants returning leaked Box::default() - unavoidable for static references
+[[exclude_re]]
+pattern = "Box::leak\\(Box::new\\(Default::default\\(\\)\\)\\)"
+
+[[exclude_re]]
+pattern = "Vec::leak\\(vec!\\[Default::default\\(\\)\\]\\)"
+
+[[exclude_re]]
+pattern = "::std::iter::once\\(Box::leak"
