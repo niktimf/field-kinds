@@ -1,0 +1,81 @@
+name: Nightly Mutation Testing
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  mutants:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Cache cargo-mutants
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/cargo-mutants
+          key: cargo-mutants-v24.11
+
+      - name: Install cargo-mutants
+        run: |
+          if ! command -v cargo-mutants &> /dev/null; then
+            cargo install cargo-mutants
+          fi
+
+      - name: Run mutation testing
+        run: cargo mutants --timeout 120 --jobs 2 --output mutants.out
+
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-report-${{ github.run_id }}
+          path: mutants.out/
+          retention-days: 30
+
+      - name: Generate summary
+        if: always()
+        run: |
+          echo "## 🧬 Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -f mutants.out/outcomes.json ]; then
+            MISSED=$(jq '[.outcomes[] | select(.outcome == "Missed")] | length' mutants.out/outcomes.json)
+            CAUGHT=$(jq '[.outcomes[] | select(.outcome == "Caught")] | length' mutants.out/outcomes.json)
+            TIMEOUT=$(jq '[.outcomes[] | select(.outcome == "Timeout")] | length' mutants.out/outcomes.json)
+            TOTAL=$((MISSED + CAUGHT))
+          
+            if [ $TOTAL -gt 0 ]; then
+              SCORE=$(echo "scale=1; $CAUGHT * 100 / $TOTAL" | bc)
+            else
+              SCORE="N/A"
+            fi
+          
+            echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| ✅ Caught | $CAUGHT |" >> $GITHUB_STEP_SUMMARY
+            echo "| ❌ Missed | $MISSED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏱️ Timeout | $TIMEOUT |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Score** | **${SCORE}%** |" >> $GITHUB_STEP_SUMMARY
+          
+            if [ "$MISSED" -gt 0 ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "### Top 20 missed mutants" >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              jq -r '[.outcomes[] | select(.outcome == "Missed")] | .[0:20] | .[] | "\(.scenario.function) in \(.scenario.file)"' mutants.out/outcomes.json >> $GITHUB_STEP_SUMMARY
+              echo '```' >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "📦 Full report in artifacts" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ No results found" >> $GITHUB_STEP_SUMMARY
+          fi
