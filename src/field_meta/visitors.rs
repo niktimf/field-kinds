@@ -25,6 +25,29 @@ impl FieldMeta {
         }
         false
     }
+
+    /// Checks if this field has the given category.
+    pub const fn has_category(&self, category: &str) -> bool {
+        const_str_eq(self.category, category)
+    }
+
+    /// Checks if this field matches the given criteria.
+    ///
+    /// Returns `true` if:
+    /// - `name` is `None` or matches the field name
+    /// - `category` is `None` or matches the field category
+    /// - `tag` is `None` or the field has the tag
+    pub fn matches(
+        &self,
+        name: Option<&str>,
+        category: Option<&str>,
+        tag: Option<&str>,
+    ) -> bool {
+        let name_ok = name.is_none_or(|n| self.name == n);
+        let category_ok = category.is_none_or(|c| self.category == c);
+        let tag_ok = tag.is_none_or(|t| self.tags.contains(&t));
+        name_ok && category_ok && tag_ok
+    }
 }
 
 const fn const_str_eq(a: &str, b: &str) -> bool {

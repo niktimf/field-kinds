@@ -1,8 +1,10 @@
 #![allow(dead_code, unused_imports)]
 
 use field_kinds::{
-    FieldInfo, FieldMeta, Numeric, Text, TypeCategory, VisitFields,
+    FieldInfo, FieldKindsExt, FieldMeta, Numeric, Text, TypeCategory,
+    VisitFields,
 };
+use rstest::rstest;
 
 struct TestStruct {
     field_a: i32,
@@ -177,4 +179,152 @@ fn field_meta_has_tag() {
     assert!(TestStruct::FIELDS[0].has_tag("primary"));
     assert!(TestStruct::FIELDS[0].has_tag("indexed"));
     assert!(!TestStruct::FIELDS[0].has_tag("nonexistent"));
+}
+
+#[rstest]
+#[case::exact_match("abc", true)]
+#[case::second_tag("xyz", true)]
+#[case::first_char_differs("xbc", false)]
+#[case::middle_char_differs("axc", false)]
+#[case::last_char_differs("abx", false)]
+#[case::different_length_shorter("ab", false)]
+#[case::different_length_longer("abcd", false)]
+#[case::completely_different("zzz", false)]
+fn has_tag_same_length_different_chars(
+    #[case] tag: &str,
+    #[case] expected: bool,
+) {
+    let meta = FieldMeta {
+        name: "test",
+        serialized_name: "test",
+        category: "text",
+        tags: &["abc", "xyz"],
+    };
+    assert_eq!(meta.has_tag(tag), expected);
+}
+
+#[test]
+fn has_tag_empty_tags() {
+    let meta = FieldMeta {
+        name: "test",
+        serialized_name: "test",
+        category: "text",
+        tags: &[],
+    };
+    assert!(!meta.has_tag("any"));
+}
+
+#[rstest]
+#[case::empty_matches_empty("", true)]
+#[case::single_char_no_match("x", false)]
+#[case::nonempty_matches("nonempty", true)]
+fn has_tag_empty_string(#[case] tag: &str, #[case] expected: bool) {
+    let meta = FieldMeta {
+        name: "test",
+        serialized_name: "test",
+        category: "text",
+        tags: &["", "nonempty"],
+    };
+    assert_eq!(meta.has_tag(tag), expected);
+}
+
+#[rstest]
+#[case::numeric("numeric", true)]
+#[case::text("text", false)]
+#[case::empty("", false)]
+fn has_category(#[case] category: &str, #[case] expected: bool) {
+    let meta = FieldMeta {
+        name: "test",
+        serialized_name: "test",
+        category: "numeric",
+        tags: &[],
+    };
+    assert_eq!(meta.has_category(category), expected);
+}
+
+#[rstest]
+#[case::all_match(Some("field_a"), Some("numeric"), Some("primary"), true)]
+#[case::name_only(Some("field_a"), None, None, true)]
+#[case::category_only(None, Some("numeric"), None, true)]
+#[case::tag_only(None, None, Some("indexed"), true)]
+#[case::name_mismatch(Some("wrong"), Some("numeric"), Some("primary"), false)]
+#[case::category_mismatch(
+    Some("field_a"),
+    Some("text"),
+    Some("primary"),
+    false
+)]
+#[case::tag_mismatch(Some("field_a"), Some("numeric"), Some("wrong"), false)]
+#[case::all_none(None, None, None, true)]
+fn matches(
+    #[case] name: Option<&str>,
+    #[case] category: Option<&str>,
+    #[case] tag: Option<&str>,
+    #[case] expected: bool,
+) {
+    assert_eq!(TestStruct::FIELDS[0].matches(name, category, tag), expected);
+}
+
+#[test]
+fn find_by_name() {
+    let found = TestStruct::find_by_name("field_a");
+    assert!(found.is_some());
+    assert_eq!(found.unwrap().serialized_name, "fieldA");
+
+    let not_found = TestStruct::find_by_name("nonexistent");
+    assert!(not_found.is_none());
+}
+
+#[test]
+fn find_by_serialized_name() {
+    let found = TestStruct::find_by_serialized_name("fieldA");
+    assert!(found.is_some());
+    assert_eq!(found.unwrap().name, "field_a");
+
+    let not_found = TestStruct::find_by_serialized_name("nonexistent");
+    assert!(not_found.is_none());
+}
+
+#[test]
+fn filter_by_category_iter() {
+    let numeric: Vec<_> = TestStruct::filter_by_category("numeric")
+        .map(|f| f.name)
+        .collect();
+    assert_eq!(numeric, vec!["field_a"]);
+
+    let text: Vec<_> = TestStruct::filter_by_category("text")
+        .map(|f| f.name)
+        .collect();
+    assert_eq!(text, vec!["field_b"]);
+
+    let empty = TestStruct::filter_by_category("bool").next().is_none();
+    assert!(empty);
+}
+
+#[test]
+fn filter_by_tag_iter() {
+    let indexed: Vec<_> = TestStruct::filter_by_tag("indexed")
+        .map(|f| f.name)
+        .collect();
+    assert_eq!(indexed, vec!["field_a", "field_b"]);
+
+    let primary: Vec<_> = TestStruct::filter_by_tag("primary")
+        .map(|f| f.name)
+        .collect();
+    assert_eq!(primary, vec!["field_a"]);
+
+    let empty = TestStruct::filter_by_tag("nonexistent").next().is_none();
+    assert!(empty);
+}
+
+#[test]
+fn field_names_iter() {
+    let names: Vec<_> = TestStruct::field_names_iter().collect();
+    assert_eq!(names, vec!["field_a", "field_b"]);
+}
+
+#[test]
+fn serialized_names_iter() {
+    let names: Vec<_> = TestStruct::serialized_names_iter().collect();
+    assert_eq!(names, vec!["fieldA", "field_b"]);
 }
