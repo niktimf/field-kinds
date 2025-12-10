@@ -1,8 +1,6 @@
 #![allow(dead_code)]
 
-use field_kinds::{
-    Bool, FieldCount, FieldInfo, FieldVisitor, HListVisitor, Numeric, Text,
-};
+use field_kinds::{Bool, FieldCount, FieldInfo, Numeric, Text};
 use frunk::{HCons, HNil};
 
 struct EmptyStruct {}
@@ -78,71 +76,4 @@ fn field_count_two() {
 #[test]
 fn field_count_three() {
     assert_eq!(HList3::COUNT, 3);
-}
-
-struct CountingVisitor(usize);
-
-impl FieldVisitor for CountingVisitor {
-    fn visit<F: FieldInfo>(&mut self) {
-        self.0 += 1;
-    }
-}
-
-#[test]
-fn hlist_visitor_empty() {
-    let mut v = CountingVisitor(0);
-    HList0::visit_all(&mut v);
-    assert_eq!(v.0, 0);
-}
-
-#[test]
-fn hlist_visitor_one() {
-    let mut v = CountingVisitor(0);
-    HList1::visit_all(&mut v);
-    assert_eq!(v.0, 1);
-}
-
-#[test]
-fn hlist_visitor_three() {
-    let mut v = CountingVisitor(0);
-    HList3::visit_all(&mut v);
-    assert_eq!(v.0, 3);
-}
-
-// Check traversal order
-struct OrderVisitor(Vec<&'static str>);
-
-impl FieldVisitor for OrderVisitor {
-    fn visit<F: FieldInfo>(&mut self) {
-        self.0.push(F::NAME);
-    }
-}
-
-#[test]
-fn hlist_visitor_order() {
-    let mut v = OrderVisitor(Vec::new());
-    HList3::visit_all(&mut v);
-    assert_eq!(v.0, vec!["alpha", "beta", "gamma"]);
-}
-
-#[test]
-fn count_matches_visits() {
-    let mut v = CountingVisitor(0);
-    HList3::visit_all(&mut v);
-    assert_eq!(HList3::COUNT, v.0);
-}
-
-struct CategoryVisitor(Vec<&'static str>);
-
-impl FieldVisitor for CategoryVisitor {
-    fn visit<F: FieldInfo>(&mut self) {
-        self.0.push(F::CATEGORY_NAME);
-    }
-}
-
-#[test]
-fn hlist_visitor_categories() {
-    let mut v = CategoryVisitor(Vec::new());
-    HList3::visit_all(&mut v);
-    assert_eq!(v.0, vec!["numeric", "text", "bool"]);
 }

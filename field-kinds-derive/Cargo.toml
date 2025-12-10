@@ -1,8 +1,8 @@
 [package]
 name = "field-kinds-derive"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
-rust-version = "1.85.0"
+rust-version = "1.90.0"
 license = "MIT"
 description = "Proc-macro implementation for field-kinds"
 repository = "https://github.com/niktimf/field-kinds"
