@@ -1,8 +1,0 @@
-# Mutants that cause infinite loops (timeout) - impossible to test
-# Pattern matches mutation descriptions like "replace += with *= in FieldMeta::has_tag"
-exclude_re = [
-    'replace \+= with \*= in',
-    'Box::leak\(Box::new\(Default::default\(\)\)\)',
-    'Vec::leak\(vec!\[Default::default\(\)\]\)',
-    '::std::iter::once\(Box::leak',
-]
