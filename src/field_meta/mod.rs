@@ -8,7 +8,7 @@ pub use categories::{
     Unknown,
 };
 pub use field_info::FieldInfo;
-pub use hlist_ops::{FieldCount, HListVisitor};
+pub use hlist_ops::{FieldCount, HCons, HListVisitor, HNil};
 pub use visitors::{FieldMeta, VisitFields};
 
 /// Trait implemented by structs deriving [`FieldKinds`](derive@crate::FieldKinds).

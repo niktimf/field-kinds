@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
-use field_kinds::{Bool, FieldCount, FieldInfo, Numeric, Text};
-use frunk::{HCons, HNil};
+use field_kinds::{Bool, FieldCount, FieldInfo, HCons, HNil, Numeric, Text};
 
 struct EmptyStruct {}
 

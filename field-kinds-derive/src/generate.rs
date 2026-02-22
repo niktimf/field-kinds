@@ -130,12 +130,12 @@ fn generate_field_kinds_impl(
     let field_count = fields.len();
 
     let hlist_type = if fields.is_empty() {
-        quote! { ::frunk::HNil }
+        quote! { #crate_path::HNil }
     } else {
-        let mut hlist = quote! { ::frunk::HNil };
+        let mut hlist = quote! { #crate_path::HNil };
         for field in fields.iter().rev() {
             let type_name = field.marker_type_name();
-            hlist = quote! { ::frunk::HCons<#mod_name::#type_name, #hlist> };
+            hlist = quote! { #crate_path::HCons<#mod_name::#type_name, #hlist> };
         }
         hlist
     };
