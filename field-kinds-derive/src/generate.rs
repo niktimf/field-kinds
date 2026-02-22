@@ -135,7 +135,8 @@ fn generate_field_kinds_impl(
         let mut hlist = quote! { #crate_path::HNil };
         for field in fields.iter().rev() {
             let type_name = field.marker_type_name();
-            hlist = quote! { #crate_path::HCons<#mod_name::#type_name, #hlist> };
+            hlist =
+                quote! { #crate_path::HCons<#mod_name::#type_name, #hlist> };
         }
         hlist
     };

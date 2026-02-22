@@ -67,7 +67,7 @@ mod field_meta;
 
 pub use field_kinds_derive::FieldKinds;
 pub use field_meta::{
-    Bool, Categorized, Collection, FieldCount, HCons, FieldInfo, FieldKinds,
-    FieldKindsExt, FieldMeta, HListVisitor, HNil, Numeric, Optional, Text,
-    TypeCategory, Unknown, VisitFields,
+    Bool, Categorized, Collection, FieldCount, FieldInfo, FieldKinds,
+    FieldKindsExt, FieldMeta, HCons, HListVisitor, HNil, Numeric, Optional,
+    Text, TypeCategory, Unknown, VisitFields,
 };
