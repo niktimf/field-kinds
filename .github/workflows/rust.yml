@@ -47,6 +47,29 @@ jobs:
       - name: Run doc tests
         run: cargo test --doc
 
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-tarpaulin
+
+      - name: Generate coverage
+        run: cargo tarpaulin --out xml --skip-clean
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: cobertura.xml
+          fail_ci_if_error: false
+
   msrv:
     name: MSRV (1.90.0)
     runs-on: ubuntu-latest

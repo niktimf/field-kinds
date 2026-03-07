@@ -2,7 +2,11 @@
 
 [![Crates.io](https://img.shields.io/crates/v/field-kinds.svg)](https://crates.io/crates/field-kinds)
 [![Documentation](https://docs.rs/field-kinds/badge.svg)](https://docs.rs/field-kinds)
+[![CI](https://github.com/niktimf/field-kinds/actions/workflows/rust.yml/badge.svg)](https://github.com/niktimf/field-kinds/actions/workflows/rust.yml)
+[![codecov](https://codecov.io/gh/niktimf/field-kinds/graph/badge.svg)](https://codecov.io/gh/niktimf/field-kinds)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![MSRV](https://img.shields.io/badge/MSRV-1.90.0-blue.svg)](https://github.com/niktimf/field-kinds)
+[![Crates.io Downloads](https://img.shields.io/crates/d/field-kinds.svg)](https://crates.io/crates/field-kinds)
 
 Compile-time struct field introspection for Rust.
 
