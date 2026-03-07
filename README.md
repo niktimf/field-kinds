@@ -23,7 +23,7 @@ Compile-time struct field introspection for Rust.
 
 ```toml
 [dependencies]
-field-kinds = "0.5"
+field-kinds = "0.5.1"
 ```
 
 ## Quick Start
