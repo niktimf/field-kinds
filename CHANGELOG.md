@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-03-07
+
+### Added
+
+- Support for generic structs with type parameters, lifetimes, and where-clauses
+
+### Changed
+
+- **Breaking**: Removed `Copy + 'static` bounds from `FieldInfo` trait
+
 ## [0.4.0] - 2026-02-22
 
 ### Changed
@@ -59,7 +69,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `field_category()` - get category for a field
   - `field_meta()` - get full metadata for all fields
 
-[Unreleased]: https://github.com/niktimf/field-kinds/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/niktimf/field-kinds/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/niktimf/field-kinds/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/niktimf/field-kinds/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/niktimf/field-kinds/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/niktimf/field-kinds/compare/v0.1.0...v0.2.0

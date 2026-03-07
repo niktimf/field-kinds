@@ -21,11 +21,18 @@ fn derive_impl(
     input: &syn::DeriveInput,
 ) -> syn::Result<proc_macro2::TokenStream> {
     let struct_name = &input.ident;
+    let generics = &input.generics;
     let rename_all = parse::parse_rename_all(&input.attrs);
     let fields = parse::parse_fields(input)?;
     let crate_path = resolve_crate_path();
 
-    Ok(generate::generate_all(struct_name, &fields, rename_all, &crate_path))
+    Ok(generate::generate_all(
+        struct_name,
+        generics,
+        &fields,
+        rename_all,
+        &crate_path,
+    ))
 }
 
 fn resolve_crate_path() -> proc_macro2::TokenStream {

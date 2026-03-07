@@ -1,12 +1,13 @@
 use convert_case::Case;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::Ident;
+use syn::{GenericParam, Generics, Ident};
 
 use crate::field::ParsedField;
 
 pub fn generate_all(
     struct_name: &Ident,
+    generics: &Generics,
     fields: &[ParsedField],
     rename_all: Option<Case>,
     crate_path: &TokenStream,
@@ -15,15 +16,17 @@ pub fn generate_all(
     let active_fields: Vec<_> = fields.iter().filter(|f| !f.skip).collect();
 
     let field_types =
-        generate_field_types(&active_fields, rename_all, crate_path);
+        generate_field_types(&active_fields, rename_all, generics, crate_path);
     let visit_impl = generate_visit_impl(
         struct_name,
+        generics,
         &active_fields,
         rename_all,
         crate_path,
     );
     let field_kinds_impl = generate_field_kinds_impl(
         struct_name,
+        generics,
         &mod_name,
         &active_fields,
         crate_path,
@@ -47,47 +50,110 @@ fn module_name(struct_name: &Ident) -> Ident {
     format_ident!("{}_fields", struct_name.to_string().to_case(Case::Snake))
 }
 
+/// Checks whether generics contain any lifetime or type parameters.
+fn has_phantom_params(generics: &Generics) -> bool {
+    generics
+        .params
+        .iter()
+        .any(|p| matches!(p, GenericParam::Lifetime(_) | GenericParam::Type(_)))
+}
+
+/// Generates a `PhantomData` type wrapping a tuple of all generic parameters.
+/// Lifetimes become `&'a ()`, types are used as-is.
+fn phantom_data_type(generics: &Generics) -> TokenStream {
+    let params: Vec<TokenStream> = generics
+        .params
+        .iter()
+        .filter_map(|p| match p {
+            GenericParam::Lifetime(lt) => {
+                let lt = &lt.lifetime;
+                Some(quote! { &#lt () })
+            }
+            GenericParam::Type(tp) => {
+                let ident = &tp.ident;
+                Some(quote! { #ident })
+            }
+            GenericParam::Const(_) => None,
+        })
+        .collect();
+
+    if params.len() == 1 {
+        let single = &params[0];
+        quote! { core::marker::PhantomData<#single> }
+    } else {
+        quote! { core::marker::PhantomData<(#(#params),*)> }
+    }
+}
+
 fn generate_field_types(
     fields: &[&ParsedField],
     rename_all: Option<Case>,
+    generics: &Generics,
     _crate_path: &TokenStream,
 ) -> TokenStream {
-    fields.iter().map(|field| {
-        let type_name = field.marker_type_name();
-        let field_type = &field.ty;
-        let field_name_str = field.ident.to_string();
-        let serialized_name = field.serialized_name(rename_all);
+    let has_generics = has_phantom_params(generics);
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
 
-        let tags = &field.tags;
-        let tags_tokens = if tags.is_empty() {
-            quote! { &[] }
-        } else {
-            quote! { &[#(#tags),*] }
-        };
+    fields
+        .iter()
+        .map(|field| {
+            let type_name = field.marker_type_name();
+            let field_type = &field.ty;
+            let field_name_str = field.ident.to_string();
+            let serialized_name = field.serialized_name(rename_all);
 
-        quote! {
-            #[derive(Debug, Clone, Copy)]
-            pub struct #type_name;
+            let tags = &field.tags;
+            let tags_tokens = if tags.is_empty() {
+                quote! { &[] }
+            } else {
+                quote! { &[#(#tags),*] }
+            };
 
-            impl FieldInfo for #type_name {
-                const NAME: &'static str = #field_name_str;
-                const SERIALIZED_NAME: &'static str = #serialized_name;
-                const CATEGORY_NAME: &'static str = <<#field_type as Categorized>::Category as TypeCategory>::NAME;
-                const TAGS: &'static [&'static str] = #tags_tokens;
+            if has_generics {
+                let phantom_type = phantom_data_type(generics);
 
-                type Value = #field_type;
-                type Category = <#field_type as Categorized>::Category;
+                quote! {
+                    pub struct #type_name #impl_generics (#phantom_type) #where_clause;
+
+                    impl #impl_generics FieldInfo for #type_name #ty_generics #where_clause {
+                        const NAME: &'static str = #field_name_str;
+                        const SERIALIZED_NAME: &'static str = #serialized_name;
+                        const CATEGORY_NAME: &'static str = <<#field_type as Categorized>::Category as TypeCategory>::NAME;
+                        const TAGS: &'static [&'static str] = #tags_tokens;
+
+                        type Value = #field_type;
+                        type Category = <#field_type as Categorized>::Category;
+                    }
+                }
+            } else {
+                quote! {
+                    #[derive(Debug, Clone, Copy)]
+                    pub struct #type_name;
+
+                    impl FieldInfo for #type_name {
+                        const NAME: &'static str = #field_name_str;
+                        const SERIALIZED_NAME: &'static str = #serialized_name;
+                        const CATEGORY_NAME: &'static str = <<#field_type as Categorized>::Category as TypeCategory>::NAME;
+                        const TAGS: &'static [&'static str] = #tags_tokens;
+
+                        type Value = #field_type;
+                        type Category = <#field_type as Categorized>::Category;
+                    }
+                }
             }
-        }
-    }).collect()
+        })
+        .collect()
 }
 
 fn generate_visit_impl(
     struct_name: &Ident,
+    generics: &Generics,
     fields: &[&ParsedField],
     rename_all: Option<Case>,
     crate_path: &TokenStream,
 ) -> TokenStream {
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
+
     let field_metas: Vec<_> = fields
         .iter()
         .map(|f| {
@@ -113,7 +179,7 @@ fn generate_visit_impl(
         .collect();
 
     quote! {
-        impl #crate_path::VisitFields for #struct_name {
+        impl #impl_generics #crate_path::VisitFields for #struct_name #ty_generics #where_clause {
             const FIELDS: &'static [#crate_path::FieldMeta] = &[
                 #(#field_metas),*
             ];
@@ -123,26 +189,26 @@ fn generate_visit_impl(
 
 fn generate_field_kinds_impl(
     struct_name: &Ident,
+    generics: &Generics,
     mod_name: &Ident,
     fields: &[&ParsedField],
     crate_path: &TokenStream,
 ) -> TokenStream {
+    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
     let field_count = fields.len();
 
-    let hlist_type = if fields.is_empty() {
-        quote! { #crate_path::HNil }
-    } else {
-        let mut hlist = quote! { #crate_path::HNil };
-        for field in fields.iter().rev() {
-            let type_name = field.marker_type_name();
-            hlist =
-                quote! { #crate_path::HCons<#mod_name::#type_name, #hlist> };
+    let has_generics = has_phantom_params(generics);
+    let hlist_type = fields.iter().rev().fold(quote! { #crate_path::HNil }, |acc, field| {
+        let type_name = field.marker_type_name();
+        if has_generics {
+            quote! { #crate_path::HCons<#mod_name::#type_name #ty_generics, #acc> }
+        } else {
+            quote! { #crate_path::HCons<#mod_name::#type_name, #acc> }
         }
-        hlist
-    };
+    });
 
     quote! {
-        impl #crate_path::FieldKinds for #struct_name {
+        impl #impl_generics #crate_path::FieldKinds for #struct_name #ty_generics #where_clause {
             type Fields = #hlist_type;
             const FIELD_COUNT: usize = #field_count;
         }
