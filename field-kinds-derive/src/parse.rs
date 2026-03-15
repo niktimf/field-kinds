@@ -1,5 +1,5 @@
 use convert_case::Case;
-use syn::{Attribute, DeriveInput, Field, Ident, Lit, Meta, Result};
+use syn::{Attribute, DeriveInput, Field, Ident, Lit, LitStr, Result};
 
 use crate::field::{ParsedField, RenameRule};
 
@@ -10,21 +10,17 @@ pub fn parse_rename_all(attrs: &[Attribute]) -> Option<RenameRule<'_>> {
             continue;
         }
 
-        let Ok(nested) = attr.parse_args_with(
-            syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated,
-        ) else {
-            continue;
-        };
-
-        for meta in nested {
-            if let Meta::NameValue(nv) = meta
-                && nv.path.is_ident("rename_all")
-                && let syn::Expr::Lit(syn::ExprLit {
-                    lit: Lit::Str(s), ..
-                }) = nv.value
-            {
-                return string_to_rename_rule(&s.value());
+        let mut result = None;
+        let _ = attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("rename_all") {
+                let value: LitStr = meta.value()?.parse()?;
+                result = string_to_rename_rule(&value.value());
             }
+            Ok(())
+        });
+
+        if result.is_some() {
+            return result;
         }
     }
     None
@@ -69,21 +65,17 @@ fn parse_field_rename(field: &Field) -> Option<String> {
             continue;
         }
 
-        let Ok(nested) = attr.parse_args_with(
-            syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated,
-        ) else {
-            continue;
-        };
-
-        for meta in nested {
-            if let Meta::NameValue(nv) = meta
-                && nv.path.is_ident("rename")
-                && let syn::Expr::Lit(syn::ExprLit {
-                    lit: Lit::Str(s), ..
-                }) = nv.value
-            {
-                return Some(s.value());
+        let mut result = None;
+        let _ = attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("rename") {
+                let value: LitStr = meta.value()?.parse()?;
+                result = Some(value.value());
             }
+            Ok(())
+        });
+
+        if result.is_some() {
+            return result;
         }
     }
     None
