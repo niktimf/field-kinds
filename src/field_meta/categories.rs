@@ -1,4 +1,11 @@
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::num::{
+    NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8,
+    NonZeroIsize, NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64,
+    NonZeroU8, NonZeroUsize,
+};
+use std::sync::Arc;
 
 /// A type-safe wrapper for field category names.
 ///
@@ -193,6 +200,43 @@ impl Categorized for f64 {
     type Category = Numeric;
 }
 
+impl Categorized for NonZeroU8 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroU16 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroU32 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroU64 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroU128 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroUsize {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroI8 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroI16 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroI32 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroI64 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroI128 {
+    type Category = Numeric;
+}
+impl Categorized for NonZeroIsize {
+    type Category = Numeric;
+}
+
 impl Categorized for String {
     type Category = Text;
 }
@@ -203,6 +247,15 @@ impl Categorized for Box<str> {
     type Category = Text;
 }
 impl Categorized for char {
+    type Category = Text;
+}
+impl<'a> Categorized for Cow<'a, str> {
+    type Category = Text;
+}
+impl Categorized for Arc<str> {
+    type Category = Text;
+}
+impl Categorized for std::rc::Rc<str> {
     type Category = Text;
 }
 

@@ -5,7 +5,14 @@ use field_kinds::{
     TypeCategory, Unknown,
 };
 use rstest::rstest;
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
+use std::num::{
+    NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8,
+    NonZeroIsize, NonZeroU128, NonZeroU16, NonZeroU32, NonZeroU64,
+    NonZeroU8, NonZeroUsize,
+};
+use std::sync::Arc;
 
 const fn category_of<T: Categorized>() -> Category {
     <T::Category as TypeCategory>::CATEGORY
@@ -37,6 +44,18 @@ fn category_names(#[case] actual: &str, #[case] expected: &str) {
 #[case::isize(category_of::<isize>())]
 #[case::f32(category_of::<f32>())]
 #[case::f64(category_of::<f64>())]
+#[case::non_zero_u8(category_of::<NonZeroU8>())]
+#[case::non_zero_u16(category_of::<NonZeroU16>())]
+#[case::non_zero_u32(category_of::<NonZeroU32>())]
+#[case::non_zero_u64(category_of::<NonZeroU64>())]
+#[case::non_zero_u128(category_of::<NonZeroU128>())]
+#[case::non_zero_usize(category_of::<NonZeroUsize>())]
+#[case::non_zero_i8(category_of::<NonZeroI8>())]
+#[case::non_zero_i16(category_of::<NonZeroI16>())]
+#[case::non_zero_i32(category_of::<NonZeroI32>())]
+#[case::non_zero_i64(category_of::<NonZeroI64>())]
+#[case::non_zero_i128(category_of::<NonZeroI128>())]
+#[case::non_zero_isize(category_of::<NonZeroIsize>())]
 fn numeric_types(#[case] category: Category) {
     assert_eq!(category, Category::NUMERIC);
 }
@@ -46,6 +65,9 @@ fn numeric_types(#[case] category: Category) {
 #[case::str_ref(category_of::<&str>())]
 #[case::box_str(category_of::<Box<str>>())]
 #[case::char(category_of::<char>())]
+#[case::cow_str(category_of::<Cow<'_, str>>())]
+#[case::arc_str(category_of::<Arc<str>>())]
+#[case::rc_str(category_of::<std::rc::Rc<str>>())]
 fn text_types(#[case] category: Category) {
     assert_eq!(category, Category::TEXT);
 }
