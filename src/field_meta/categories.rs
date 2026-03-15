@@ -248,7 +248,7 @@ impl Categorized for Box<str> {
 impl Categorized for char {
     type Category = Text;
 }
-impl<'a> Categorized for Cow<'a, str> {
+impl Categorized for Cow<'_, str> {
     type Category = Text;
 }
 impl Categorized for Arc<str> {
