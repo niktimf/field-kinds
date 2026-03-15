@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
 use field_kinds::{
-    Categorized, FieldKinds, FieldKindsExt, Numeric, Text, TypeCategory,
-    Unknown,
+    Categorized, Category, FieldKinds, FieldKindsExt, Numeric, Text,
+    TypeCategory, Unknown,
 };
 
 pub struct Money(i64);
@@ -57,8 +57,17 @@ fn main() {
     }
 
     println!("\n=== Filter by Category ===");
-    println!("Numeric fields: {:?}", Order::fields_by_category("numeric"));
-    println!("Text fields: {:?}", Order::fields_by_category("text"));
-    println!("Unknown fields: {:?}", Order::fields_by_category("unknown"));
-    println!("Binary fields: {:?}", Order::fields_by_category("binary"));
+    println!(
+        "Numeric fields: {:?}",
+        Order::fields_by_category(Category::NUMERIC)
+    );
+    println!("Text fields: {:?}", Order::fields_by_category(Category::TEXT));
+    println!(
+        "Unknown fields: {:?}",
+        Order::fields_by_category(Category::UNKNOWN)
+    );
+    println!(
+        "Binary fields: {:?}",
+        Order::fields_by_category(Binary::CATEGORY)
+    );
 }

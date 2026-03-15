@@ -23,14 +23,6 @@ pub fn generate_all(
         rename_all,
         crate_path,
     );
-    let field_kinds_impl = generate_field_kinds_impl(
-        struct_name,
-        generics,
-        &mod_name,
-        &active_fields,
-        crate_path,
-    );
-
     quote! {
         #[doc(hidden)]
         pub mod #mod_name {
@@ -41,7 +33,6 @@ pub fn generate_all(
         }
 
         #visit_impl
-        #field_kinds_impl
     }
 }
 
@@ -169,7 +160,7 @@ fn generate_visit_impl(
                 #crate_path::FieldMeta::new(
                     #name,
                     #serialized_name,
-                    <<#field_type as #crate_path::Categorized>::Category as #crate_path::TypeCategory>::NAME,
+                    <<#field_type as #crate_path::Categorized>::Category as #crate_path::TypeCategory>::CATEGORY,
                     #tags_tokens,
                 )
             }
@@ -181,34 +172,6 @@ fn generate_visit_impl(
             const FIELDS: &'static [#crate_path::FieldMeta] = &[
                 #(#field_metas),*
             ];
-        }
-    }
-}
-
-fn generate_field_kinds_impl(
-    struct_name: &Ident,
-    generics: &Generics,
-    mod_name: &Ident,
-    fields: &[&ParsedField],
-    crate_path: &TokenStream,
-) -> TokenStream {
-    let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();
-    let field_count = fields.len();
-
-    let has_generics = has_phantom_params(generics);
-    let hlist_type = fields.iter().rev().fold(quote! { #crate_path::HNil }, |acc, field| {
-        let type_name = field.marker_type_name();
-        if has_generics {
-            quote! { #crate_path::HCons<#mod_name::#type_name #ty_generics, #acc> }
-        } else {
-            quote! { #crate_path::HCons<#mod_name::#type_name, #acc> }
-        }
-    });
-
-    quote! {
-        impl #impl_generics #crate_path::FieldKinds for #struct_name #ty_generics #where_clause {
-            type Fields = #hlist_type;
-            const FIELD_COUNT: usize = #field_count;
         }
     }
 }

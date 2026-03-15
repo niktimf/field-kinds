@@ -1,6 +1,6 @@
 #![allow(dead_code, clippy::struct_field_names)]
 
-use field_kinds::{FieldKinds, FieldKindsExt};
+use field_kinds::{Category, FieldKinds, FieldKindsExt, VisitFields};
 
 #[derive(FieldKinds)]
 #[serde(rename_all = "camelCase")]
@@ -20,10 +20,16 @@ fn main() {
     println!("Serialized: {:?}", User::serialized_names());
 
     println!("\n=== Categories ===");
-    println!("Numeric fields: {:?}", User::fields_by_category("numeric"));
-    println!("Text fields: {:?}", User::fields_by_category("text"));
-    println!("Bool fields: {:?}", User::fields_by_category("bool"));
-    println!("Optional fields: {:?}", User::fields_by_category("optional"));
+    println!(
+        "Numeric fields: {:?}",
+        User::fields_by_category(Category::NUMERIC)
+    );
+    println!("Text fields: {:?}", User::fields_by_category(Category::TEXT));
+    println!("Bool fields: {:?}", User::fields_by_category(Category::BOOL));
+    println!(
+        "Optional fields: {:?}",
+        User::fields_by_category(Category::OPTIONAL)
+    );
 
     println!("\n=== Tags ===");
     println!("Sensitive fields: {:?}", User::fields_by_tag("sensitive"));

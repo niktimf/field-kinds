@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 
-use field_kinds::{Categorized, FieldKinds, FieldKindsExt};
+use field_kinds::{
+    Categorized, Category, FieldKinds, FieldKindsExt, VisitFields,
+};
 
 #[derive(FieldKinds)]
 struct Wrapper<T: Categorized> {
@@ -11,9 +13,15 @@ struct Wrapper<T: Categorized> {
 fn single_type_param() {
     assert_eq!(Wrapper::<i32>::FIELD_COUNT, 1);
     assert_eq!(Wrapper::<i32>::field_names(), vec!["value"]);
-    assert_eq!(Wrapper::<i32>::field_category("value"), Some("numeric"));
-    assert_eq!(Wrapper::<String>::field_category("value"), Some("text"));
-    assert_eq!(Wrapper::<bool>::field_category("value"), Some("bool"));
+    assert_eq!(
+        Wrapper::<i32>::field_category("value"),
+        Some(Category::NUMERIC)
+    );
+    assert_eq!(
+        Wrapper::<String>::field_category("value"),
+        Some(Category::TEXT)
+    );
+    assert_eq!(Wrapper::<bool>::field_category("value"), Some(Category::BOOL));
 }
 
 #[derive(FieldKinds)]
@@ -26,8 +34,14 @@ struct Pair<T: Categorized, U: Categorized> {
 fn multiple_type_params() {
     assert_eq!(Pair::<i32, String>::FIELD_COUNT, 2);
     assert_eq!(Pair::<i32, String>::field_names(), vec!["first", "second"]);
-    assert_eq!(Pair::<i32, String>::field_category("first"), Some("numeric"));
-    assert_eq!(Pair::<i32, String>::field_category("second"), Some("text"));
+    assert_eq!(
+        Pair::<i32, String>::field_category("first"),
+        Some(Category::NUMERIC)
+    );
+    assert_eq!(
+        Pair::<i32, String>::field_category("second"),
+        Some(Category::TEXT)
+    );
 }
 
 #[derive(FieldKinds)]
@@ -41,9 +55,9 @@ struct Mixed<T: Categorized> {
 fn concrete_and_generic_fields() {
     assert_eq!(Mixed::<i32>::FIELD_COUNT, 3);
     assert_eq!(Mixed::<i32>::field_names(), vec!["name", "value", "active"]);
-    assert_eq!(Mixed::<i32>::field_category("name"), Some("text"));
-    assert_eq!(Mixed::<i32>::field_category("value"), Some("numeric"));
-    assert_eq!(Mixed::<i32>::field_category("active"), Some("bool"));
+    assert_eq!(Mixed::<i32>::field_category("name"), Some(Category::TEXT));
+    assert_eq!(Mixed::<i32>::field_category("value"), Some(Category::NUMERIC));
+    assert_eq!(Mixed::<i32>::field_category("active"), Some(Category::BOOL));
 }
 
 #[derive(FieldKinds)]
@@ -55,8 +69,8 @@ struct Borrowed<'a> {
 #[test]
 fn lifetime_param() {
     assert_eq!(Borrowed::field_names(), vec!["text", "count"]);
-    assert_eq!(Borrowed::field_category("text"), Some("text"));
-    assert_eq!(Borrowed::field_category("count"), Some("numeric"));
+    assert_eq!(Borrowed::field_category("text"), Some(Category::TEXT));
+    assert_eq!(Borrowed::field_category("count"), Some(Category::NUMERIC));
 }
 
 #[derive(FieldKinds)]
@@ -69,9 +83,12 @@ struct Complex<'a, T: Categorized> {
 fn lifetime_and_type_param() {
     assert_eq!(Complex::<i32>::FIELD_COUNT, 2);
     assert_eq!(Complex::<i32>::field_names(), vec!["label", "value"]);
-    assert_eq!(Complex::<i32>::field_category("label"), Some("text"));
-    assert_eq!(Complex::<i32>::field_category("value"), Some("numeric"));
-    assert_eq!(Complex::<bool>::field_category("value"), Some("bool"));
+    assert_eq!(Complex::<i32>::field_category("label"), Some(Category::TEXT));
+    assert_eq!(
+        Complex::<i32>::field_category("value"),
+        Some(Category::NUMERIC)
+    );
+    assert_eq!(Complex::<bool>::field_category("value"), Some(Category::BOOL));
 }
 
 #[derive(FieldKinds)]
@@ -85,5 +102,8 @@ where
 #[test]
 fn where_clause() {
     assert_eq!(Constrained::<i32>::field_names(), vec!["data"]);
-    assert_eq!(Constrained::<String>::field_category("data"), Some("text"));
+    assert_eq!(
+        Constrained::<String>::field_category("data"),
+        Some(Category::TEXT)
+    );
 }

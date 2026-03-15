@@ -1,11 +1,71 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 
+/// A type-safe wrapper for field category names.
+///
+/// Provides compile-time constants for built-in categories.
+/// Custom categories are created by implementing [`TypeCategory`].
+///
+/// # Example
+///
+/// ```rust
+/// use field_kinds::{Category, TypeCategory};
+///
+/// // Built-in categories
+/// let category = Category::NUMERIC;
+/// assert_eq!(category.name(), "numeric");
+///
+/// // Custom category via TypeCategory
+/// #[derive(Debug, Clone, Copy)]
+/// struct Money;
+///
+/// impl TypeCategory for Money {
+///     const NAME: &'static str = "money";
+/// }
+///
+/// assert_eq!(Money::CATEGORY.name(), "money");
+/// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Category(&'static str);
+
+impl Category {
+    #[doc(hidden)]
+    const fn new(name: &'static str) -> Self {
+        Self(name)
+    }
+
+    /// Returns the underlying category name.
+    pub const fn name(&self) -> &'static str {
+        self.0
+    }
+}
+
+impl PartialEq<&str> for Category {
+    fn eq(&self, other: &&str) -> bool {
+        self.0 == *other
+    }
+}
+
+impl PartialEq<Category> for &str {
+    fn eq(&self, other: &Category) -> bool {
+        *self == other.0
+    }
+}
+
+impl core::fmt::Display for Category {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(self.0)
+    }
+}
+
 /// Trait for type category markers.
 ///
 /// Implemented by category marker types ([`Numeric`], [`Text`], etc.).
 pub trait TypeCategory: 'static + Copy {
     /// String name of the category (e.g., "numeric", "text").
     const NAME: &'static str;
+
+    /// The [`Category`] value for this type category.
+    const CATEGORY: Category = Category::new(Self::NAME);
 }
 
 /// Marker type for numeric types (`i8`-`i128`, `u8`-`u128`, `f32`, `f64`, `isize`, `usize`).
@@ -49,6 +109,23 @@ impl TypeCategory for Collection {
 }
 impl TypeCategory for Unknown {
     const NAME: &'static str = "unknown";
+}
+
+// Associated constants referencing TypeCategory::NAME as single source of truth.
+// Defined after marker impls so the constants can reference them.
+impl Category {
+    /// Numeric types (`i8`-`i128`, `u8`-`u128`, `f32`, `f64`, `isize`, `usize`).
+    pub const NUMERIC: Self = <Numeric as TypeCategory>::CATEGORY;
+    /// Text types (`String`, `&str`, `Box<str>`, `char`).
+    pub const TEXT: Self = <Text as TypeCategory>::CATEGORY;
+    /// Boolean type.
+    pub const BOOL: Self = <Bool as TypeCategory>::CATEGORY;
+    /// Optional types (`Option<T>`).
+    pub const OPTIONAL: Self = <Optional as TypeCategory>::CATEGORY;
+    /// Collection types (`Vec`, `HashSet`, `HashMap`, arrays, slices).
+    pub const COLLECTION: Self = <Collection as TypeCategory>::CATEGORY;
+    /// Types that don't match any known category.
+    pub const UNKNOWN: Self = <Unknown as TypeCategory>::CATEGORY;
 }
 
 /// Trait for mapping Rust types to their categories.

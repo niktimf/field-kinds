@@ -1,6 +1,6 @@
 #![allow(dead_code, clippy::needless_pass_by_value)]
 
-use field_kinds::{FieldKinds, FieldKindsExt};
+use field_kinds::{Category, FieldKinds, FieldKindsExt, VisitFields};
 use proptest::prelude::*;
 
 // Test struct for property tests
@@ -73,12 +73,12 @@ fn invariant_category_exists_for_all_fields() {
 #[test]
 fn invariant_categories_cover_all_fields() {
     let categories = [
-        "numeric",
-        "text",
-        "bool",
-        "optional",
-        "collection",
-        "unknown",
+        Category::NUMERIC,
+        Category::TEXT,
+        Category::BOOL,
+        Category::OPTIONAL,
+        Category::COLLECTION,
+        Category::UNKNOWN,
     ];
     let mut all_fields: Vec<&str> = Vec::new();
 
@@ -112,10 +112,5 @@ proptest! {
     #[test]
     fn prop_field_category_never_panics(name in "[a-z_]{1,20}") {
         let _ = PropTestStruct::field_category(&name);
-    }
-
-    #[test]
-    fn prop_fields_by_category_never_panics(cat in "[a-z]{1,15}") {
-        let _ = PropTestStruct::fields_by_category(&cat);
     }
 }

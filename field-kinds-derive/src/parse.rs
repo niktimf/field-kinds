@@ -1,6 +1,6 @@
+use crate::field::{ParsedField, RenameRule};
 use convert_case::Case;
 use syn::{Attribute, DeriveInput, Field, Ident, Lit, LitStr, Result};
-use crate::field::{ParsedField, RenameRule};
 
 /// Parses `rename_all` from `#[serde(rename_all = "...")]`
 pub fn parse_rename_all(attrs: &[Attribute]) -> Option<RenameRule<'_>> {

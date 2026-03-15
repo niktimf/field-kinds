@@ -1,27 +1,13 @@
 mod categories;
 mod field_info;
-mod hlist_ops;
 mod visitors;
 
 pub use categories::{
-    Bool, Categorized, Collection, Numeric, Optional, Text, TypeCategory,
-    Unknown,
+    Bool, Categorized, Category, Collection, Numeric, Optional, Text,
+    TypeCategory, Unknown,
 };
 pub use field_info::FieldInfo;
-pub use hlist_ops::{FieldCount, HCons, HListVisitor, HNil};
 pub use visitors::{FieldMeta, VisitFields};
-
-/// Trait implemented by structs deriving [`FieldKinds`](derive@crate::FieldKinds).
-///
-/// Provides compile-time field count and access to field type information
-/// via an `HList` of field marker types.
-pub trait FieldKinds: VisitFields {
-    /// `HList` type containing marker types for each field.
-    type Fields: FieldCount + HListVisitor;
-
-    /// Number of fields in the struct (compile-time constant).
-    const FIELD_COUNT: usize = Self::Fields::COUNT;
-}
 
 /// Extension trait providing convenient methods for field introspection.
 ///
@@ -48,7 +34,7 @@ pub trait FieldKindsExt: VisitFields {
     }
 
     /// Returns field names matching the given category.
-    fn fields_by_category(category: &str) -> Vec<&'static str> {
+    fn fields_by_category(category: Category) -> Vec<&'static str> {
         Self::FIELDS
             .iter()
             .filter(|f| f.category == category)
@@ -67,7 +53,7 @@ pub trait FieldKindsExt: VisitFields {
 
     /// Returns an iterator over fields matching the given category.
     fn filter_by_category(
-        category: &'static str,
+        category: Category,
     ) -> impl Iterator<Item = &'static FieldMeta> {
         Self::FIELDS.iter().filter(move |f| f.category == category)
     }
@@ -95,7 +81,7 @@ pub trait FieldKindsExt: VisitFields {
     }
 
     /// Returns the category of a field by name, or `None` if not found.
-    fn field_category(name: &str) -> Option<&'static str> {
+    fn field_category(name: &str) -> Option<Category> {
         Self::FIELDS
             .iter()
             .find(|f| f.name == name)

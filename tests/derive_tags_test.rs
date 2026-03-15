@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use field_kinds::{FieldKinds, FieldKindsExt};
+use field_kinds::{FieldKinds, FieldKindsExt, VisitFields};
 
 #[derive(FieldKinds)]
 struct TaggedStruct {

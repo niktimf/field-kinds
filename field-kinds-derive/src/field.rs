@@ -26,17 +26,11 @@ impl ParsedField {
     /// Name of the marker type: `user_name` -> `UserName`
     pub fn marker_type_name(&self) -> Ident {
         use convert_case::Casing;
-        quote::format_ident!(
-            "{}",
-            self.ident.to_string().to_case(Case::Pascal)
-        )
+        quote::format_ident!("{}", self.ident.to_string().to_case(Case::Pascal))
     }
 
     /// Serialized name considering rename and `rename_all`
-    pub fn serialized_name(
-        &self,
-        rename_all: Option<RenameRule>,
-    ) -> String {
+    pub fn serialized_name(&self, rename_all: Option<RenameRule>) -> String {
         use convert_case::Casing;
 
         self.rename.clone().unwrap_or_else(|| {

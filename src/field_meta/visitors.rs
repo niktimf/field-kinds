@@ -1,3 +1,5 @@
+use crate::field_meta::categories::Category;
+
 /// Runtime-accessible metadata for a single field.
 ///
 /// Contains all information about a field that can be queried at runtime.
@@ -8,8 +10,8 @@ pub struct FieldMeta {
     pub name: &'static str,
     /// Serialized name (may differ due to `#[serde(rename)]` or `rename_all`).
     pub serialized_name: &'static str,
-    /// Type category (e.g., "numeric", "text", "bool", "optional", "collection").
-    pub category: &'static str,
+    /// Type category.
+    pub category: Category,
     /// Custom tags added via `#[field_tags(...)]`.
     pub tags: &'static [&'static str],
 }
@@ -20,7 +22,7 @@ impl FieldMeta {
     pub const fn new(
         name: &'static str,
         serialized_name: &'static str,
-        category: &'static str,
+        category: Category,
         tags: &'static [&'static str],
     ) -> Self {
         Self {
@@ -44,8 +46,8 @@ impl FieldMeta {
     }
 
     /// Checks if this field has the given category.
-    pub const fn has_category(&self, category: &str) -> bool {
-        const_str_eq(self.category, category)
+    pub const fn has_category(&self, category: Category) -> bool {
+        const_str_eq(self.category.name(), category.name())
     }
 
     /// Checks if this field matches the given criteria.
@@ -57,7 +59,7 @@ impl FieldMeta {
     pub fn matches(
         &self,
         name: Option<&str>,
-        category: Option<&str>,
+        category: Option<Category>,
         tag: Option<&str>,
     ) -> bool {
         let name_ok = name.is_none_or(|n| self.name == n);
@@ -89,4 +91,7 @@ const fn const_str_eq(a: &str, b: &str) -> bool {
 pub trait VisitFields {
     /// Static slice containing metadata for all fields.
     const FIELDS: &'static [FieldMeta];
+
+    /// Number of fields in the struct (compile-time constant).
+    const FIELD_COUNT: usize = Self::FIELDS.len();
 }

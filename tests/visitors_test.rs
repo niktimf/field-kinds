@@ -1,7 +1,7 @@
 #![allow(dead_code, unused_imports)]
 
 use field_kinds::{
-    FieldInfo, FieldKindsExt, FieldMeta, Numeric, Text, TypeCategory,
+    Category, FieldInfo, FieldKindsExt, FieldMeta, Numeric, Text, TypeCategory,
     VisitFields,
 };
 use rstest::rstest;
@@ -37,8 +37,13 @@ impl FieldInfo for FieldB {
 
 impl VisitFields for TestStruct {
     const FIELDS: &'static [FieldMeta] = &[
-        FieldMeta::new("field_a", "fieldA", "numeric", &["primary", "indexed"]),
-        FieldMeta::new("field_b", "field_b", "text", &["indexed"]),
+        FieldMeta::new(
+            "field_a",
+            "fieldA",
+            Category::NUMERIC,
+            &["primary", "indexed"],
+        ),
+        FieldMeta::new("field_b", "field_b", Category::TEXT, &["indexed"]),
     ];
 }
 
@@ -61,21 +66,21 @@ fn serialized_names() {
 fn filter_by_category() {
     let numeric: Vec<_> = TestStruct::FIELDS
         .iter()
-        .filter(|f| f.category == "numeric")
+        .filter(|f| f.category == Category::NUMERIC)
         .map(|f| f.name)
         .collect();
     assert_eq!(numeric, vec!["field_a"]);
 
     let text: Vec<_> = TestStruct::FIELDS
         .iter()
-        .filter(|f| f.category == "text")
+        .filter(|f| f.category == Category::TEXT)
         .map(|f| f.name)
         .collect();
     assert_eq!(text, vec!["field_b"]);
 
     let bool_fields = TestStruct::FIELDS
         .iter()
-        .filter(|f| f.category == "bool")
+        .filter(|f| f.category == Category::BOOL)
         .map(|f| f.name)
         .next()
         .is_none();
@@ -121,14 +126,14 @@ fn get_field_category() {
             .iter()
             .find(|f| f.name == "field_a")
             .map(|f| f.category),
-        Some("numeric")
+        Some(Category::NUMERIC)
     );
     assert_eq!(
         TestStruct::FIELDS
             .iter()
             .find(|f| f.name == "field_b")
             .map(|f| f.category),
-        Some("text")
+        Some(Category::TEXT)
     );
     assert_eq!(
         TestStruct::FIELDS
@@ -146,12 +151,12 @@ fn field_meta() {
 
     assert_eq!(meta[0].name, "field_a");
     assert_eq!(meta[0].serialized_name, "fieldA");
-    assert_eq!(meta[0].category, "numeric");
+    assert_eq!(meta[0].category, Category::NUMERIC);
     assert_eq!(meta[0].tags, &["primary", "indexed"]);
 
     assert_eq!(meta[1].name, "field_b");
     assert_eq!(meta[1].serialized_name, "field_b");
-    assert_eq!(meta[1].category, "text");
+    assert_eq!(meta[1].category, Category::TEXT);
 }
 
 #[test]
@@ -184,13 +189,13 @@ fn has_tag_same_length_different_chars(
     #[case] tag: &str,
     #[case] expected: bool,
 ) {
-    let meta = FieldMeta::new("test", "test", "text", &["abc", "xyz"]);
+    let meta = FieldMeta::new("test", "test", Category::TEXT, &["abc", "xyz"]);
     assert_eq!(meta.has_tag(tag), expected);
 }
 
 #[test]
 fn has_tag_empty_tags() {
-    let meta = FieldMeta::new("test", "test", "text", &[]);
+    let meta = FieldMeta::new("test", "test", Category::TEXT, &[]);
     assert!(!meta.has_tag("any"));
 }
 
@@ -199,36 +204,51 @@ fn has_tag_empty_tags() {
 #[case::single_char_no_match("x", false)]
 #[case::nonempty_matches("nonempty", true)]
 fn has_tag_empty_string(#[case] tag: &str, #[case] expected: bool) {
-    let meta = FieldMeta::new("test", "test", "text", &["", "nonempty"]);
+    let meta =
+        FieldMeta::new("test", "test", Category::TEXT, &["", "nonempty"]);
     assert_eq!(meta.has_tag(tag), expected);
 }
 
 #[rstest]
-#[case::numeric("numeric", true)]
-#[case::text("text", false)]
-#[case::empty("", false)]
-fn has_category(#[case] category: &str, #[case] expected: bool) {
-    let meta = FieldMeta::new("test", "test", "numeric", &[]);
+#[case::numeric(Category::NUMERIC, true)]
+#[case::text(Category::TEXT, false)]
+fn has_category(#[case] category: Category, #[case] expected: bool) {
+    let meta = FieldMeta::new("test", "test", Category::NUMERIC, &[]);
     assert_eq!(meta.has_category(category), expected);
 }
 
 #[rstest]
-#[case::all_match(Some("field_a"), Some("numeric"), Some("primary"), true)]
-#[case::name_only(Some("field_a"), None, None, true)]
-#[case::category_only(None, Some("numeric"), None, true)]
-#[case::tag_only(None, None, Some("indexed"), true)]
-#[case::name_mismatch(Some("wrong"), Some("numeric"), Some("primary"), false)]
-#[case::category_mismatch(
+#[case::all_match(
     Some("field_a"),
-    Some("text"),
+    Some(Category::NUMERIC),
+    Some("primary"),
+    true
+)]
+#[case::name_only(Some("field_a"), None, None, true)]
+#[case::category_only(None, Some(Category::NUMERIC), None, true)]
+#[case::tag_only(None, None, Some("indexed"), true)]
+#[case::name_mismatch(
+    Some("wrong"),
+    Some(Category::NUMERIC),
     Some("primary"),
     false
 )]
-#[case::tag_mismatch(Some("field_a"), Some("numeric"), Some("wrong"), false)]
+#[case::category_mismatch(
+    Some("field_a"),
+    Some(Category::TEXT),
+    Some("primary"),
+    false
+)]
+#[case::tag_mismatch(
+    Some("field_a"),
+    Some(Category::NUMERIC),
+    Some("wrong"),
+    false
+)]
 #[case::all_none(None, None, None, true)]
 fn matches(
     #[case] name: Option<&str>,
-    #[case] category: Option<&str>,
+    #[case] category: Option<Category>,
     #[case] tag: Option<&str>,
     #[case] expected: bool,
 ) {
@@ -257,17 +277,19 @@ fn find_by_serialized_name() {
 
 #[test]
 fn filter_by_category_iter() {
-    let numeric: Vec<_> = TestStruct::filter_by_category("numeric")
+    let numeric: Vec<_> = TestStruct::filter_by_category(Category::NUMERIC)
         .map(|f| f.name)
         .collect();
     assert_eq!(numeric, vec!["field_a"]);
 
-    let text: Vec<_> = TestStruct::filter_by_category("text")
+    let text: Vec<_> = TestStruct::filter_by_category(Category::TEXT)
         .map(|f| f.name)
         .collect();
     assert_eq!(text, vec!["field_b"]);
 
-    let empty = TestStruct::filter_by_category("bool").next().is_none();
+    let empty = TestStruct::filter_by_category(Category::BOOL)
+        .next()
+        .is_none();
     assert!(empty);
 }
 

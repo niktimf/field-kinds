@@ -18,7 +18,7 @@
 //! # Example
 //!
 //! ```rust
-//! use field_kinds::{FieldKinds, FieldKindsExt, VisitFields};
+//! use field_kinds::{Category, FieldKinds, FieldKindsExt, VisitFields};
 //!
 //! #[derive(FieldKinds)]
 //! #[serde(rename_all = "camelCase")]
@@ -37,8 +37,8 @@
 //! assert_eq!(User::serialized_names(), vec!["userId", "userName", "isActive", "email"]);
 //!
 //! // Filter by category
-//! assert_eq!(User::fields_by_category("numeric"), vec!["user_id"]);
-//! assert_eq!(User::fields_by_category("text"), vec!["user_name"]);
+//! assert_eq!(User::fields_by_category(Category::NUMERIC), vec!["user_id"]);
+//! assert_eq!(User::fields_by_category(Category::TEXT), vec!["user_name"]);
 //!
 //! // Filter by tag
 //! assert_eq!(User::fields_by_tag("sensitive"), vec!["email"]);
@@ -67,7 +67,6 @@ mod field_meta;
 
 pub use field_kinds_derive::FieldKinds;
 pub use field_meta::{
-    Bool, Categorized, Collection, FieldCount, FieldInfo, FieldKinds,
-    FieldKindsExt, FieldMeta, HCons, HListVisitor, HNil, Numeric, Optional,
-    Text, TypeCategory, Unknown, VisitFields,
+    Bool, Categorized, Category, Collection, FieldInfo, FieldKindsExt,
+    FieldMeta, Numeric, Optional, Text, TypeCategory, Unknown, VisitFields,
 };
