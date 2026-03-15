@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-03-15
+
+### Added
+
+- `Category` newtype for type-safe category handling with compile-time constants (`Category::NUMERIC`, `Category::TEXT`, etc.)
+- `TypeCategory::CATEGORY` associated constant with default implementation
+- `PartialEq<&str>` for `Category` for runtime string comparison
+- `Display` implementation for `Category`
+- `Categorized` implementations for `Cow<str>`, `Arc<str>`, `Rc<str>`
+- `Categorized` implementations for all `NonZero*` types
+- Support for `lowercase`, `UPPERCASE`, and `SCREAMING-KEBAB-CASE` in `#[serde(rename_all)]`
+- `#[non_exhaustive]` on `FieldMeta` for future-proof extensibility
+
+### Fixed
+
+- `#[serde]` without arguments no longer breaks parsing of subsequent serde attributes
+- Multiple `#[field_tags]` attributes on a field now merge correctly
+- Unsupported `rename_all` variants no longer silently ignored
+
+### Changed
+
+- **Breaking**: `FieldMeta.category` is now `Category` instead of `&'static str`
+- **Breaking**: `fields_by_category()`, `filter_by_category()` now take `Category` instead of `&str`
+- **Breaking**: `field_category()` returns `Option<Category>` instead of `Option<&'static str>`
+- **Breaking**: `has_category()` takes `Category` instead of `&str`
+- **Breaking**: `matches()` takes `Option<Category>` instead of `Option<&str>` for category
+- **Breaking**: Removed `FieldKinds` trait, `HCons`, `HNil`, `FieldCount`, `HListVisitor` from public API
+- `FIELD_COUNT` moved to `VisitFields` trait (with default `Self::FIELDS.len()`)
+- Generated field marker module is now `#[doc(hidden)]`
+- `syn` dependency reduced from `full` to `derive` feature for faster compilation
+
 ## [0.5.0] - 2026-03-07
 
 ### Added
@@ -69,7 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `field_category()` - get category for a field
   - `field_meta()` - get full metadata for all fields
 
-[Unreleased]: https://github.com/niktimf/field-kinds/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/niktimf/field-kinds/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/niktimf/field-kinds/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/niktimf/field-kinds/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/niktimf/field-kinds/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/niktimf/field-kinds/compare/v0.2.0...v0.3.0

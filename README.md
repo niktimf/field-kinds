@@ -23,13 +23,13 @@ Compile-time struct field introspection for Rust.
 
 ```toml
 [dependencies]
-field-kinds = "0.5.1"
+field-kinds = "0.6.0"
 ```
 
 ## Quick Start
 
 ```rust
-use field_kinds::{FieldKinds, FieldKindsExt, VisitFields};
+use field_kinds::{Category, FieldKinds, FieldKindsExt, VisitFields};
 
 #[derive(FieldKinds)]
 #[serde(rename_all = "camelCase")]
@@ -48,20 +48,20 @@ fn main() {
     // Serialized names (with rename_all applied)
     assert_eq!(User::serialized_names(), vec!["userId", "userName", "isActive", "email"]);
     
-    // Filter by category
-    assert_eq!(User::fields_by_category("numeric"), vec!["user_id"]);
-    assert_eq!(User::fields_by_category("text"), vec!["user_name"]);
-    assert_eq!(User::fields_by_category("optional"), vec!["email"]);
-    
+    // Filter by category (type-safe via Category constants)
+    assert_eq!(User::fields_by_category(Category::NUMERIC), vec!["user_id"]);
+    assert_eq!(User::fields_by_category(Category::TEXT), vec!["user_name"]);
+    assert_eq!(User::fields_by_category(Category::OPTIONAL), vec!["email"]);
+
     // Filter by tag
     assert_eq!(User::fields_by_tag("sensitive"), vec!["email"]);
-    
+
     // Check field existence
     assert!(User::has_field("user_id"));
     assert!(!User::has_field("nonexistent"));
-    
+
     // Get field category
-    assert_eq!(User::field_category("user_id"), Some("numeric"));
+    assert_eq!(User::field_category("user_id"), Some(Category::NUMERIC));
     
     // Access static metadata directly
     assert_eq!(User::FIELDS.len(), 4);
@@ -81,7 +81,7 @@ fn main() {
 |-----------|-------------|
 | `#[serde(rename_all = "...")]` | Apply case conversion to serialized names |
 
-Supported cases: `camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`, `kebab-case`
+Supported cases: `camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`, `kebab-case`, `SCREAMING-KEBAB-CASE`, `lowercase`, `UPPERCASE`
 
 ### Field-level
 
@@ -97,8 +97,8 @@ Types are automatically categorized:
 
 | Category | Types |
 |----------|-------|
-| `numeric` | `i8`-`i128`, `u8`-`u128`, `f32`, `f64`, `isize`, `usize` |
-| `text` | `String`, `&str`, `Box<str>`, `char` |
+| `numeric` | `i8`-`i128`, `u8`-`u128`, `f32`, `f64`, `isize`, `usize`, `NonZero*` |
+| `text` | `String`, `&str`, `Box<str>`, `char`, `Cow<str>`, `Arc<str>`, `Rc<str>` |
 | `bool` | `bool` |
 | `optional` | `Option<T>` |
 | `collection` | `Vec<T>`, `HashSet<T>`, `HashMap<K,V>`, `BTreeSet<T>`, `BTreeMap<K,V>`, `[T; N]`, `&[T]` |
