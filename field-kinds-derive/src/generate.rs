@@ -1,15 +1,14 @@
-use convert_case::Case;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{GenericParam, Generics, Ident};
 
-use crate::field::ParsedField;
+use crate::field::{ParsedField, RenameRule};
 
 pub fn generate_all(
     struct_name: &Ident,
     generics: &Generics,
     fields: &[ParsedField],
-    rename_all: Option<Case>,
+    rename_all: Option<RenameRule>,
     crate_path: &TokenStream,
 ) -> TokenStream {
     let mod_name = module_name(struct_name);
@@ -87,7 +86,7 @@ fn phantom_data_type(generics: &Generics) -> TokenStream {
 
 fn generate_field_types(
     fields: &[&ParsedField],
-    rename_all: Option<Case>,
+    rename_all: Option<RenameRule>,
     generics: &Generics,
     _crate_path: &TokenStream,
 ) -> TokenStream {
@@ -149,7 +148,7 @@ fn generate_visit_impl(
     struct_name: &Ident,
     generics: &Generics,
     fields: &[&ParsedField],
-    rename_all: Option<Case>,
+    rename_all: Option<RenameRule>,
     crate_path: &TokenStream,
 ) -> TokenStream {
     let (impl_generics, ty_generics, where_clause) = generics.split_for_impl();

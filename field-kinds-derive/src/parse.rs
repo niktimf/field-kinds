@@ -1,18 +1,20 @@
 use convert_case::Case;
 use syn::{Attribute, DeriveInput, Field, Ident, Lit, Meta, Result};
 
-use crate::field::ParsedField;
+use crate::field::{ParsedField, RenameRule};
 
 /// Parses `rename_all` from `#[serde(rename_all = "...")]`
-pub fn parse_rename_all(attrs: &[Attribute]) -> Option<Case<'_>> {
+pub fn parse_rename_all(attrs: &[Attribute]) -> Option<RenameRule<'_>> {
     for attr in attrs {
         if !attr.path().is_ident("serde") {
             continue;
         }
 
-        let nested = attr
-            .parse_args_with(syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated)
-            .ok()?;
+        let Ok(nested) = attr.parse_args_with(
+            syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated,
+        ) else {
+            continue;
+        };
 
         for meta in nested {
             if let Meta::NameValue(nv) = meta
@@ -21,7 +23,7 @@ pub fn parse_rename_all(attrs: &[Attribute]) -> Option<Case<'_>> {
                     lit: Lit::Str(s), ..
                 }) = nv.value
             {
-                return string_to_case(&s.value());
+                return string_to_rename_rule(&s.value());
             }
         }
     }
@@ -67,9 +69,11 @@ fn parse_field_rename(field: &Field) -> Option<String> {
             continue;
         }
 
-        let nested = attr
-            .parse_args_with(syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated)
-            .ok()?;
+        let Ok(nested) = attr.parse_args_with(
+            syn::punctuated::Punctuated::<Meta, syn::Token![,]>::parse_terminated,
+        ) else {
+            continue;
+        };
 
         for meta in nested {
             if let Meta::NameValue(nv) = meta
@@ -86,25 +90,23 @@ fn parse_field_rename(field: &Field) -> Option<String> {
 }
 
 fn parse_field_tags(field: &Field) -> Vec<String> {
+    let mut tags = Vec::new();
     for attr in &field.attrs {
         if attr.path().is_ident("field_tags")
             && let Ok(args) = attr.parse_args_with(
                 syn::punctuated::Punctuated::<Lit, syn::Token![,]>::parse_terminated,
             )
         {
-            return args
-                .iter()
-                .filter_map(|lit| {
-                    if let Lit::Str(s) = lit {
-                        Some(s.value())
-                    } else {
-                        None
-                    }
-                })
-                .collect();
+            tags.extend(args.iter().filter_map(|lit| {
+                if let Lit::Str(s) = lit {
+                    Some(s.value())
+                } else {
+                    None
+                }
+            }));
         }
     }
-    Vec::new()
+    tags
 }
 
 fn parse_field_skip(field: &Field) -> bool {
@@ -119,13 +121,16 @@ fn parse_field_skip(field: &Field) -> bool {
     false
 }
 
-fn string_to_case(s: &str) -> Option<Case<'static>> {
+fn string_to_rename_rule(s: &str) -> Option<RenameRule<'static>> {
     match s {
-        "camelCase" => Some(Case::Camel),
-        "snake_case" => Some(Case::Snake),
-        "PascalCase" => Some(Case::Pascal),
-        "SCREAMING_SNAKE_CASE" => Some(Case::UpperSnake),
-        "kebab-case" => Some(Case::Kebab),
+        "camelCase" => Some(RenameRule::Case(Case::Camel)),
+        "snake_case" => Some(RenameRule::Case(Case::Snake)),
+        "PascalCase" => Some(RenameRule::Case(Case::Pascal)),
+        "SCREAMING_SNAKE_CASE" => Some(RenameRule::Case(Case::UpperSnake)),
+        "kebab-case" => Some(RenameRule::Case(Case::Kebab)),
+        "SCREAMING-KEBAB-CASE" => Some(RenameRule::Case(Case::UpperKebab)),
+        "lowercase" => Some(RenameRule::Lowercase),
+        "UPPERCASE" => Some(RenameRule::Uppercase),
         _ => None,
     }
 }

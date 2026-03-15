@@ -61,3 +61,21 @@ fn skip_with_tags() {
     assert_eq!(MixedStruct::fields_by_tag("important"), vec!["keep"]);
     assert!(MixedStruct::fields_by_tag("should_not_appear").is_empty());
 }
+
+#[derive(FieldKinds)]
+struct MultipleTagAttrs {
+    #[field_tags("a", "b")]
+    #[field_tags("c")]
+    field: String,
+}
+
+#[test]
+fn multiple_field_tags_attrs_should_merge() {
+    let meta = MultipleTagAttrs::field_meta();
+    let field = meta.iter().find(|m| m.name == "field").unwrap();
+    assert!(
+        field.tags.contains(&"c"),
+        "Tag 'c' from second #[field_tags] is silently lost, got: {:?}",
+        field.tags
+    );
+}
