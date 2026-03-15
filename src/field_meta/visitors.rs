@@ -2,6 +2,7 @@
 ///
 /// Contains all information about a field that can be queried at runtime.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct FieldMeta {
     /// Original field name in Rust code.
     pub name: &'static str,
@@ -14,6 +15,22 @@ pub struct FieldMeta {
 }
 
 impl FieldMeta {
+    /// Creates a new `FieldMeta` instance.
+    #[doc(hidden)]
+    pub const fn new(
+        name: &'static str,
+        serialized_name: &'static str,
+        category: &'static str,
+        tags: &'static [&'static str],
+    ) -> Self {
+        Self {
+            name,
+            serialized_name,
+            category,
+            tags,
+        }
+    }
+
     /// Checks if this field has the given tag.
     pub const fn has_tag(&self, tag: &str) -> bool {
         let mut i = 0;

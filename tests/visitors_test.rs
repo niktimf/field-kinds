@@ -37,18 +37,8 @@ impl FieldInfo for FieldB {
 
 impl VisitFields for TestStruct {
     const FIELDS: &'static [FieldMeta] = &[
-        FieldMeta {
-            name: "field_a",
-            serialized_name: "fieldA",
-            category: "numeric",
-            tags: &["primary", "indexed"],
-        },
-        FieldMeta {
-            name: "field_b",
-            serialized_name: "field_b",
-            category: "text",
-            tags: &["indexed"],
-        },
+        FieldMeta::new("field_a", "fieldA", "numeric", &["primary", "indexed"]),
+        FieldMeta::new("field_b", "field_b", "text", &["indexed"]),
     ];
 }
 
@@ -194,23 +184,13 @@ fn has_tag_same_length_different_chars(
     #[case] tag: &str,
     #[case] expected: bool,
 ) {
-    let meta = FieldMeta {
-        name: "test",
-        serialized_name: "test",
-        category: "text",
-        tags: &["abc", "xyz"],
-    };
+    let meta = FieldMeta::new("test", "test", "text", &["abc", "xyz"]);
     assert_eq!(meta.has_tag(tag), expected);
 }
 
 #[test]
 fn has_tag_empty_tags() {
-    let meta = FieldMeta {
-        name: "test",
-        serialized_name: "test",
-        category: "text",
-        tags: &[],
-    };
+    let meta = FieldMeta::new("test", "test", "text", &[]);
     assert!(!meta.has_tag("any"));
 }
 
@@ -219,12 +199,7 @@ fn has_tag_empty_tags() {
 #[case::single_char_no_match("x", false)]
 #[case::nonempty_matches("nonempty", true)]
 fn has_tag_empty_string(#[case] tag: &str, #[case] expected: bool) {
-    let meta = FieldMeta {
-        name: "test",
-        serialized_name: "test",
-        category: "text",
-        tags: &["", "nonempty"],
-    };
+    let meta = FieldMeta::new("test", "test", "text", &["", "nonempty"]);
     assert_eq!(meta.has_tag(tag), expected);
 }
 
@@ -233,12 +208,7 @@ fn has_tag_empty_string(#[case] tag: &str, #[case] expected: bool) {
 #[case::text("text", false)]
 #[case::empty("", false)]
 fn has_category(#[case] category: &str, #[case] expected: bool) {
-    let meta = FieldMeta {
-        name: "test",
-        serialized_name: "test",
-        category: "numeric",
-        tags: &[],
-    };
+    let meta = FieldMeta::new("test", "test", "numeric", &[]);
     assert_eq!(meta.has_category(category), expected);
 }
 

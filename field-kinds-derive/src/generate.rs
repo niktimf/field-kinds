@@ -32,6 +32,7 @@ pub fn generate_all(
     );
 
     quote! {
+        #[doc(hidden)]
         pub mod #mod_name {
             use super::*;
             use #crate_path::{FieldInfo, Categorized, TypeCategory};
@@ -84,6 +85,14 @@ fn phantom_data_type(generics: &Generics) -> TokenStream {
     }
 }
 
+fn tags_tokens(tags: &[String]) -> TokenStream {
+    if tags.is_empty() {
+        quote! { &[] }
+    } else {
+        quote! { &[#(#tags),*] }
+    }
+}
+
 fn generate_field_types(
     fields: &[&ParsedField],
     rename_all: Option<RenameRule>,
@@ -101,12 +110,7 @@ fn generate_field_types(
             let field_name_str = field.ident.to_string();
             let serialized_name = field.serialized_name(rename_all);
 
-            let tags = &field.tags;
-            let tags_tokens = if tags.is_empty() {
-                quote! { &[] }
-            } else {
-                quote! { &[#(#tags),*] }
-            };
+            let tags_tokens = tags_tokens(&field.tags);
 
             if has_generics {
                 let phantom_type = phantom_data_type(generics);
@@ -159,20 +163,15 @@ fn generate_visit_impl(
             let name = f.ident.to_string();
             let serialized_name = f.serialized_name(rename_all);
             let field_type = &f.ty;
-            let tags = &f.tags;
-            let tags_tokens = if tags.is_empty() {
-                quote! { &[] }
-            } else {
-                quote! { &[#(#tags),*] }
-            };
+            let tags_tokens = tags_tokens(&f.tags);
 
             quote! {
-                #crate_path::FieldMeta {
-                    name: #name,
-                    serialized_name: #serialized_name,
-                    category: <<#field_type as #crate_path::Categorized>::Category as #crate_path::TypeCategory>::NAME,
-                    tags: #tags_tokens,
-                }
+                #crate_path::FieldMeta::new(
+                    #name,
+                    #serialized_name,
+                    <<#field_type as #crate_path::Categorized>::Category as #crate_path::TypeCategory>::NAME,
+                    #tags_tokens,
+                )
             }
         })
         .collect();
