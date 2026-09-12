@@ -96,3 +96,63 @@ fn collection_struct_categories() {
         vec!["count"]
     );
 }
+
+#[derive(FieldKinds)]
+struct RawIdentStruct {
+    r#type: String,
+    r#match: bool,
+    id: u64,
+}
+
+#[test]
+fn raw_identifiers_should_be_reported_without_prefix() {
+    assert_eq!(
+        RawIdentStruct::field_names(),
+        vec!["type", "match", "id"],
+        "the `r#` prefix is Rust syntax, not part of the field name"
+    );
+    assert_eq!(RawIdentStruct::serialized_names(), vec!["type", "match", "id"]);
+    assert!(RawIdentStruct::has_field("type"));
+    assert_eq!(RawIdentStruct::field_category("type"), Some(Category::TEXT));
+}
+
+/// `NAMES` must not drift from the names inside `FIELDS`.
+#[test]
+fn names_const_agrees_with_fields() {
+    let from_fields: Vec<_> =
+        SimpleStruct::FIELDS.iter().map(|f| f.name).collect();
+    assert_eq!(SimpleStruct::NAMES, from_fields);
+}
+
+#[test]
+fn serialized_names_const_agrees_with_fields() {
+    let from_fields: Vec<_> = SimpleStruct::FIELDS
+        .iter()
+        .filter(|f| !f.skip_serializing)
+        .map(|f| f.serialized_name)
+        .collect();
+    assert_eq!(SimpleStruct::SERIALIZED_NAMES, from_fields);
+}
+
+/// The point of the consts: reading the names hands out the static slice
+/// itself, rather than copying it into a fresh allocation.
+#[test]
+fn field_names_does_not_copy() {
+    assert!(std::ptr::eq(SimpleStruct::field_names(), SimpleStruct::NAMES));
+    assert!(std::ptr::eq(
+        SimpleStruct::serialized_names(),
+        SimpleStruct::SERIALIZED_NAMES
+    ));
+}
+
+/// Being consts rather than methods, the names are usable at compile time.
+#[test]
+fn names_are_usable_in_const_context() {
+    const COUNT: usize = SimpleStruct::NAMES.len();
+    const FIRST: &str = SimpleStruct::NAMES[0];
+    static IDS: [u8; COUNT] = [0; 3];
+
+    assert_eq!(COUNT, SimpleStruct::FIELD_COUNT);
+    assert_eq!(FIRST, "id");
+    assert_eq!(IDS.len(), 3);
+}
