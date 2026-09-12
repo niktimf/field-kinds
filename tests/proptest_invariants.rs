@@ -86,7 +86,7 @@ fn invariant_categories_cover_all_fields() {
         all_fields.extend(PropTestStruct::fields_by_category(cat));
     }
 
-    let mut expected = PropTestStruct::field_names();
+    let mut expected = PropTestStruct::field_names().to_vec();
     all_fields.sort_unstable();
     expected.sort_unstable();
 

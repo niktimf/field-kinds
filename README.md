@@ -43,10 +43,10 @@ struct User {
 
 fn main() {
     // Field names
-    assert_eq!(User::field_names(), vec!["user_id", "user_name", "is_active", "email"]);
+    assert_eq!(User::field_names(), ["user_id", "user_name", "is_active", "email"]);
     
     // Serialized names (with rename_all applied)
-    assert_eq!(User::serialized_names(), vec!["userId", "userName", "isActive", "email"]);
+    assert_eq!(User::serialized_names(), ["userId", "userName", "isActive", "email"]);
     
     // Filter by category (type-safe via Category constants)
     assert_eq!(User::fields_by_category(Category::NUMERIC), vec!["user_id"]);
@@ -88,8 +88,10 @@ Supported cases: `camelCase`, `snake_case`, `PascalCase`, `SCREAMING_SNAKE_CASE`
 | Attribute | Description |
 |-----------|-------------|
 | `#[serde(rename = "...")]` | Override serialized name |
+| `#[serde(skip)]`, `#[serde(skip_serializing)]` | Field keeps its metadata but gets no serialized name |
 | `#[field_tags("tag1", "tag2")]` | Add custom tags |
 | `#[field_kinds(skip)]` | Exclude field from introspection |
+| `#[field_kinds(category = Type)]` | Set the category explicitly, for types that cannot implement `Categorized` |
 
 ## Type Categories
 
@@ -102,7 +104,10 @@ Types are automatically categorized:
 | `bool` | `bool` |
 | `optional` | `Option<T>` |
 | `collection` | `Vec<T>`, `HashSet<T>`, `HashMap<K,V>`, `BTreeSet<T>`, `BTreeMap<K,V>`, `[T; N]`, `&[T]` |
-| `unknown` | Everything else |
+| `unknown` | Types marked `#[field_kinds(category = Unknown)]` |
+
+Any other field type must implement `Categorized`, or name its category
+with `#[field_kinds(category = ...)]`.
 
 ### Custom Categories
 
@@ -115,6 +120,23 @@ struct Money(i64);
 
 impl Categorized for Money {
     type Category = Numeric;
+}
+```
+
+For types you cannot write an impl for, such as types from other crates,
+name the category on the field instead:
+
+```rust
+use field_kinds::{FieldKinds, Numeric, Text};
+use std::path::PathBuf;
+use std::time::Duration;
+
+#[derive(FieldKinds)]
+struct Job {
+    #[field_kinds(category = Numeric)]
+    elapsed: Duration,
+    #[field_kinds(category = Text)]
+    log: PathBuf,
 }
 ```
 

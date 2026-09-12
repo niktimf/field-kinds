@@ -31,10 +31,10 @@
 //! }
 //!
 //! // Get field names
-//! assert_eq!(User::field_names(), vec!["user_id", "user_name", "is_active", "email"]);
+//! assert_eq!(User::field_names(), ["user_id", "user_name", "is_active", "email"]);
 //!
 //! // Get serialized names (with rename_all applied)
-//! assert_eq!(User::serialized_names(), vec!["userId", "userName", "isActive", "email"]);
+//! assert_eq!(User::serialized_names(), ["userId", "userName", "isActive", "email"]);
 //!
 //! // Filter by category
 //! assert_eq!(User::fields_by_category(Category::NUMERIC), vec!["user_id"]);
@@ -62,6 +62,10 @@
 //! - `#[serde(rename = "...")]` - Override serialized name for a field
 //! - `#[field_tags("tag1", "tag2")]` - Add custom tags to a field
 //! - `#[field_kinds(skip)]` - Skip a field from introspection
+//! - `#[field_kinds(category = Type)]` - Set the field's category explicitly,
+//!   for field types that cannot implement [`Categorized`]
+//! - `#[serde(skip)]`, `#[serde(skip_serializing)]` - The field keeps its
+//!   metadata but gets no serialized name
 
 mod field_meta;
 

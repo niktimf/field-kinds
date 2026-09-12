@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `#[field_kinds(category = ...)]` to set a field's category explicitly, for field types that cannot implement `Categorized`, such as types from other crates
+- `FieldMeta::skip_serializing`, set for fields serde leaves out of the serialized output
+- `VisitFields::NAMES` and `VisitFields::SERIALIZED_NAMES`, the field names as static slices, usable in const context
+
+### Fixed
+
+- `#[serde(rename)]` and `#[serde(rename_all)]` were silently ignored when an option with a value preceded them in the same attribute, e.g. `#[serde(skip_serializing_if = "Option::is_none", rename = "id")]` (regression in 0.6.0)
+- `#[serde(rename(serialize = "..."))]` and `#[serde(rename_all(serialize = "..."))]` are now honored
+- `#[serde(rename_all)]` now renames fields exactly like serde: no word splitting on digits or case changes (`address_line1` becomes `ADDRESS_LINE1`, not `ADDRESS_LINE_1`), and `snake_case` / `lowercase` leave field names unchanged
+- Raw identifier fields such as `r#type` no longer make the derive panic and are reported without the `r#` prefix
+- Deriving no longer fails when a field is named after a type or trait it uses, e.g. `status: Status`, `vec: Vec<u8>` or `default: T` with `T: Default`
+- Private field types and types declared inside functions are now supported
+- Structs whose only generic parameters are const generics are now supported
+- Field names whose `PascalCase` form cannot name a type (`self_`, `_1`, `__`) no longer make the derive panic
+- Field names that convert to the same marker type name, such as `field1` and `field_1`, no longer collide
+- Generic structs with a borrowed generic field, such as `struct Page<'a, T> { items: &'a [T] }`, now derive: the marker's `FieldInfo` impl spells out the `T: 'a` bound that the struct itself infers
+
+### Changed
+
+- Generated field marker types now have the visibility of their field instead of always being `pub`
+- `serialized_names()`, `serialized_names_iter()` and `find_by_serialized_name()` no longer report fields serde does not serialize (`#[serde(skip)]`, `#[serde(skip_serializing)]`)
+- **Breaking**: `field_names()` and `serialized_names()` return `&'static [&'static str]` instead of `Vec<&'static str>`, and no longer allocate. Call `.to_vec()` where an owned `Vec` is needed
+- **Breaking**: `VisitFields` gained the required `NAMES` and `SERIALIZED_NAMES` consts, which hand-written implementations must provide. The derive generates them
+- `syn` dependency updated from 2.0 to 3.0
+
 ## [0.6.0] - 2026-03-15
 
 ### Added

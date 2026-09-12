@@ -45,6 +45,10 @@ impl VisitFields for TestStruct {
         ),
         FieldMeta::new("field_b", "field_b", Category::TEXT, &["indexed"]),
     ];
+
+    const NAMES: &'static [&'static str] = &["field_a", "field_b"];
+
+    const SERIALIZED_NAMES: &'static [&'static str] = &["fieldA", "field_b"];
 }
 
 #[test]

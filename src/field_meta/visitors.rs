@@ -14,6 +14,9 @@ pub struct FieldMeta {
     pub category: Category,
     /// Custom tags added via `#[field_tags(...)]`.
     pub tags: &'static [&'static str],
+    /// Whether serde leaves the field out of the serialized output,
+    /// because of `#[serde(skip)]` or `#[serde(skip_serializing)]`.
+    pub skip_serializing: bool,
 }
 
 impl FieldMeta {
@@ -30,7 +33,16 @@ impl FieldMeta {
             serialized_name,
             category,
             tags,
+            skip_serializing: false,
         }
+    }
+
+    /// Marks the field as one serde leaves out of the serialized output.
+    #[doc(hidden)]
+    #[must_use]
+    pub const fn skipping_serialization(mut self) -> Self {
+        self.skip_serializing = true;
+        self
     }
 
     /// Checks if this field has the given tag.
@@ -91,6 +103,22 @@ const fn const_str_eq(a: &str, b: &str) -> bool {
 pub trait VisitFields {
     /// Static slice containing metadata for all fields.
     const FIELDS: &'static [FieldMeta];
+
+    /// Original field names, in declaration order.
+    ///
+    /// The same names as `FIELDS[..].name`, kept as their own slice so that
+    /// reading them needs no allocation: the length of a filtered or mapped
+    /// `FIELDS` cannot be named in this trait, so it could only be produced
+    /// into a `Vec`. A hand-written implementation must keep the two
+    /// consistent.
+    const NAMES: &'static [&'static str];
+
+    /// Serialized field names, in declaration order, leaving out the fields
+    /// serde does not serialize (`#[serde(skip)]`, `#[serde(skip_serializing)]`).
+    ///
+    /// Shorter than [`NAMES`](Self::NAMES) when any field is skipped, so the
+    /// two must not be zipped together.
+    const SERIALIZED_NAMES: &'static [&'static str];
 
     /// Number of fields in the struct (compile-time constant).
     const FIELD_COUNT: usize = Self::FIELDS.len();
