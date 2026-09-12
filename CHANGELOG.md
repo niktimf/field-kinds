@@ -120,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `FieldMeta::has_tag()` const fn for compile-time tag checking
 
-## [0.1.0] - 2024-12-04
+## [0.1.0] - 2025-12-04
 
 ### Added
 
