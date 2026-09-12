@@ -14,11 +14,11 @@ categories = ["development-tools::procedural-macro-helpers", "rust-patterns"]
 proc-macro = true
 
 [dependencies]
-syn = { version = "2.0", features = ["derive", "parsing"] }
+syn = { version = "3.0", features = ["derive", "parsing"] }
 quote = "1.0"
 proc-macro2 = "1.0"
-convert_case = "0.11"
-proc-macro-crate = "3.4"
+convert_case = "0.12"
+proc-macro-crate = "3.5"
 
 [lints.clippy]
 all = { level = "warn", priority = -1 }
