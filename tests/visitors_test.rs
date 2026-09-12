@@ -324,3 +324,13 @@ fn serialized_names_iter() {
     let names: Vec<_> = TestStruct::serialized_names_iter().collect();
     assert_eq!(names, vec!["fieldA", "field_b"]);
 }
+
+/// `skipping_serialization` is only ever called from the derive's `const`
+/// initializers, where it is evaluated at compile time. Calling it at run
+/// time is the only way to observe the flag it sets.
+#[test]
+fn skipping_serialization_sets_the_flag() {
+    let meta = FieldMeta::new("a", "a", Category::TEXT, &[]);
+    assert!(!meta.skip_serializing);
+    assert!(meta.skipping_serialization().skip_serializing);
+}

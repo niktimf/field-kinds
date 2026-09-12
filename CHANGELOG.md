@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `serialized_names()`, `serialized_names_iter()` and `find_by_serialized_name()` no longer report fields serde does not serialize (`#[serde(skip)]`, `#[serde(skip_serializing)]`)
 - **Breaking**: `field_names()` and `serialized_names()` return `&'static [&'static str]` instead of `Vec<&'static str>`, and no longer allocate. Call `.to_vec()` where an owned `Vec` is needed
 - **Breaking**: `VisitFields` gained the required `NAMES` and `SERIALIZED_NAMES` consts, which hand-written implementations must provide. The derive generates them
+- **Breaking**: an unknown `#[serde(rename_all = "...")]` rule is now a compile error instead of being silently dropped, which left fields under their original names
+- **Breaking**: an unknown option in `#[field_kinds(...)]` is now a compile error, so a typo such as `#[field_kinds(skipp)]` no longer does nothing
 - `syn` dependency updated from 2.0 to 3.0
 
 ## [0.6.0] - 2026-03-15

@@ -287,3 +287,16 @@ impl<K, V, S> Categorized for HashMap<K, V, S> {
 impl<K, V> Categorized for BTreeMap<K, V> {
     type Category = Collection;
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Category;
+
+    /// `Category::new` is private and every call site is a `const`, so it is
+    /// only ever evaluated at compile time. Calling it at run time is the
+    /// only way to check it keeps the name it is given.
+    #[test]
+    fn new_keeps_the_name() {
+        assert_eq!(Category::new("money").name(), "money");
+    }
+}

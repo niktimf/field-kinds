@@ -343,3 +343,20 @@ fn field_meta_reports_skipped_serialization() {
         "skip_serializing_if is decided at runtime, not by the metadata"
     );
 }
+
+/// A `rename_all` that only names the deserialization side leaves the
+/// serialized names alone, and is not mistaken for an unknown rule.
+#[derive(FieldKinds)]
+#[serde(rename_all(deserialize = "camelCase"))]
+struct DeserializeOnlyRenameAll {
+    user_id: u32,
+    user_name: String,
+}
+
+#[test]
+fn deserialize_only_rename_all_does_not_rename() {
+    assert_eq!(
+        DeserializeOnlyRenameAll::serialized_names(),
+        ["user_id", "user_name"]
+    );
+}

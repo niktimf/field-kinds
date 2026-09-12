@@ -96,3 +96,17 @@ fn optional_types(#[case] category: Category) {
 fn collection_types(#[case] category: Category) {
     assert_eq!(category, Category::COLLECTION);
 }
+
+#[test]
+fn category_compares_to_str_in_both_directions() {
+    assert_eq!(Category::NUMERIC, "numeric");
+    assert_eq!("numeric", Category::NUMERIC);
+    assert_ne!(Category::NUMERIC, "text");
+    assert_ne!("text", Category::NUMERIC);
+}
+
+#[test]
+fn category_displays_its_name() {
+    assert_eq!(Category::TEXT.to_string(), "text");
+    assert_eq!(format!("{}", Category::COLLECTION), "collection");
+}
