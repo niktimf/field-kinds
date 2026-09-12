@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-12
+
 ### Added
 
 - `#[field_kinds(category = ...)]` to set a field's category explicitly, for field types that cannot implement `Categorized`, such as types from other crates
@@ -130,7 +132,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `field_category()` - get category for a field
   - `field_meta()` - get full metadata for all fields
 
-[Unreleased]: https://github.com/niktimf/field-kinds/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/niktimf/field-kinds/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/niktimf/field-kinds/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/niktimf/field-kinds/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/niktimf/field-kinds/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/niktimf/field-kinds/compare/v0.3.0...v0.4.0

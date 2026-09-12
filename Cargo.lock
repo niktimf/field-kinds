@@ -77,7 +77,7 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
 name = "field-kinds"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "field-kinds-derive",
  "proptest",
@@ -88,7 +88,7 @@ dependencies = [
 
 [[package]]
 name = "field-kinds-derive"
-version = "0.6.0"
+version = "0.7.0"
 dependencies = [
  "convert_case",
  "proc-macro-crate",

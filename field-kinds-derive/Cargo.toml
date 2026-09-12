@@ -1,12 +1,13 @@
 [package]
 name = "field-kinds-derive"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2024"
 rust-version = "1.90.0"
 license = "MIT"
 description = "Proc-macro implementation for field-kinds"
 repository = "https://github.com/niktimf/field-kinds"
 readme = "../README.md"
+exclude = ["/target"]
 keywords = ["derive", "macro", "reflection", "introspection", "struct"]
 categories = ["development-tools::procedural-macro-helpers", "rust-patterns"]
 
