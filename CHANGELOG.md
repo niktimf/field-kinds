@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking**: `VisitFields` gained the required `NAMES` and `SERIALIZED_NAMES` consts, which hand-written implementations must provide. The derive generates them
 - **Breaking**: an unknown `#[serde(rename_all = "...")]` rule is now a compile error instead of being silently dropped, which left fields under their original names
 - **Breaking**: an unknown option in `#[field_kinds(...)]` is now a compile error, so a typo such as `#[field_kinds(skipp)]` no longer does nothing
+- **Breaking**: `#[field_tags(...)]` now rejects anything but string literals. A missing pair of quotes, as in `#[field_tags(primary)]`, used to drop the whole attribute and leave the field with no tags at all
 - `syn` dependency updated from 2.0 to 3.0
 
 ## [0.6.0] - 2026-03-15

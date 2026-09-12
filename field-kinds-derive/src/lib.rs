@@ -121,6 +121,34 @@ mod tests {
         );
     }
 
+    /// Without quotes the argument is not a literal at all, so the whole
+    /// attribute used to be dropped and the field silently lost every tag.
+    #[test]
+    fn unquoted_field_tag_is_rejected() {
+        let message = error_for("struct S { #[field_tags(primary)] a: u32 }");
+        assert!(
+            message.contains("field_tags"),
+            "the error should mention the attribute, got: {message}"
+        );
+    }
+
+    #[test]
+    fn non_string_field_tag_is_rejected() {
+        let message =
+            error_for(r#"struct S { #[field_tags("primary", 42)] a: u32 }"#);
+        assert!(
+            message.contains("field_tags"),
+            "the error should mention the attribute, got: {message}"
+        );
+    }
+
+    #[test]
+    fn string_field_tags_are_accepted() {
+        assert!(accepts(
+            r#"struct S { #[field_tags("primary", "indexed")] a: u32 }"#
+        ));
+    }
+
     #[test]
     fn known_rename_all_rules_are_accepted() {
         assert!(accepts(

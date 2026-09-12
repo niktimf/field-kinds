@@ -2,6 +2,7 @@ use crate::field::{ParsedField, RenameRule};
 use proc_macro2::TokenTree;
 use syn::ext::IdentExt;
 use syn::meta::ParseNestedMeta;
+use syn::punctuated::Punctuated;
 use syn::{Attribute, DeriveInput, Field, Lit, LitStr, Path, Result, Token};
 
 /// Parses `rename_all` from `#[serde(rename_all = "...")]`
@@ -85,7 +86,7 @@ fn parse_single_field(field: &Field) -> Result<ParsedField> {
         vis: field.vis.clone(),
         ty: field.ty.clone(),
         rename: parse_field_rename(field),
-        tags: parse_field_tags(field),
+        tags: parse_field_tags(field)?,
         category: options.category,
         skip_serializing: parse_serde_skip(field),
         skip: options.skip,
@@ -172,24 +173,47 @@ fn skip_meta_value(meta: &ParseNestedMeta) -> Result<()> {
     Ok(())
 }
 
-fn parse_field_tags(field: &Field) -> Vec<String> {
+/// Parses `#[field_tags("...", "...")]`.
+///
+/// Like `#[field_kinds(..)]`, this attribute belongs to this crate, so
+/// anything other than a list of string literals is a mistake rather than
+/// syntax owned by someone else. Both rejections used to be silent, and the
+/// costlier one was a missing pair of quotes: `#[field_tags(primary)]` does
+/// not parse as a literal at all, so the whole attribute was dropped and the
+/// field lost every tag it was given.
+fn parse_field_tags(field: &Field) -> Result<Vec<String>> {
     let mut tags = Vec::new();
     for attr in &field.attrs {
-        if attr.path().is_ident("field_tags")
-            && let Ok(args) = attr.parse_args_with(
-                syn::punctuated::Punctuated::<Lit, syn::Token![,]>::parse_terminated,
-            )
-        {
-            tags.extend(args.iter().filter_map(|lit| {
-                if let Lit::Str(s) = lit {
-                    Some(s.value())
-                } else {
-                    None
+        if !attr.path().is_ident("field_tags") {
+            continue;
+        }
+
+        let args = attr
+            .parse_args_with(Punctuated::<Lit, Token![,]>::parse_terminated)
+            .map_err(|error| {
+                syn::Error::new(
+                    error.span(),
+                    format!(
+                        "{error}; field_tags expects string literals, \
+                             as in #[field_tags(\"primary\")]"
+                    ),
+                )
+            })?;
+
+        for arg in &args {
+            match arg {
+                Lit::Str(tag) => tags.push(tag.value()),
+                other => {
+                    return Err(syn::Error::new_spanned(
+                        other,
+                        "field_tags expects string literals, as in \
+                         #[field_tags(\"primary\")]",
+                    ));
                 }
-            }));
+            }
         }
     }
-    tags
+    Ok(tags)
 }
 
 /// Options of `#[field_kinds(...)]`.
