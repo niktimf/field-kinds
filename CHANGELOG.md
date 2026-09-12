@@ -27,13 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Field names whose `PascalCase` form cannot name a type (`self_`, `_1`, `__`) no longer make the derive panic
 - Field names that convert to the same marker type name, such as `field1` and `field_1`, no longer collide
 - Generic structs with a borrowed generic field, such as `struct Page<'a, T> { items: &'a [T] }`, now derive: the marker's `FieldInfo` impl spells out the `T: 'a` bound that the struct itself infers
+- The published `field-kinds-derive` package no longer contains build artifacts from a committed `target/` directory, which were present in every release up to 0.6.0
 
 ### Changed
 
-- Generated field marker types now have the visibility of their field instead of always being `pub`
-- `serialized_names()`, `serialized_names_iter()` and `find_by_serialized_name()` no longer report fields serde does not serialize (`#[serde(skip)]`, `#[serde(skip_serializing)]`)
 - **Breaking**: `field_names()` and `serialized_names()` return `&'static [&'static str]` instead of `Vec<&'static str>`, and no longer allocate. Call `.to_vec()` where an owned `Vec` is needed
 - **Breaking**: `VisitFields` gained the required `NAMES` and `SERIALIZED_NAMES` consts, which hand-written implementations must provide. The derive generates them
+- **Breaking**: generated field marker types now have the visibility of their field instead of always being `pub`, so a marker for a private field can no longer be named from outside its module
+- **Breaking**: `serialized_names()`, `serialized_names_iter()` and `find_by_serialized_name()` no longer report fields serde does not serialize (`#[serde(skip)]`, `#[serde(skip_serializing)]`)
 - **Breaking**: an unknown `#[serde(rename_all = "...")]` rule is now a compile error instead of being silently dropped, which left fields under their original names
 - **Breaking**: an unknown option in `#[field_kinds(...)]` is now a compile error, so a typo such as `#[field_kinds(skipp)]` no longer does nothing
 - **Breaking**: `#[field_tags(...)]` now rejects anything but string literals. A missing pair of quotes, as in `#[field_tags(primary)]`, used to drop the whole attribute and leave the field with no tags at all
@@ -69,6 +70,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `FIELD_COUNT` moved to `VisitFields` trait (with default `Self::FIELDS.len()`)
 - Generated field marker module is now `#[doc(hidden)]`
 - `syn` dependency reduced from `full` to `derive` feature for faster compilation
+
+## [0.5.1] - 2026-03-07
+
+### Changed
+
+- Documentation only: added CI, coverage, MSRV and downloads badges to the README. No code changes
 
 ## [0.5.0] - 2026-03-07
 
@@ -135,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [Unreleased]: https://github.com/niktimf/field-kinds/compare/v0.7.0...HEAD
 [0.7.0]: https://github.com/niktimf/field-kinds/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/niktimf/field-kinds/compare/v0.5.0...v0.6.0
+[0.5.1]: https://github.com/niktimf/field-kinds/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/niktimf/field-kinds/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/niktimf/field-kinds/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/niktimf/field-kinds/compare/v0.2.0...v0.3.0
